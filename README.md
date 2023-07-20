@@ -20,5 +20,5 @@ Cisco Catalsyt 2960 IOS 12.x.x
 Cisco Router 1760, 1841
 
 Note:
-*.exe and *.dll files must be copied to c:\windows\system32
+* *.exe and *.dll files must be copied from required_files to c:\windows\system32
 * Firmware are not available in this page. Because of license you should provide yourself.
