@@ -21,3 +21,4 @@ Cisco Router 1760, 1841
 
 Note:
 *.exe and *.dll files must be copied to c:\windows\system32
+* Firmware are not available in this page. Because of license you should provide yourself.
