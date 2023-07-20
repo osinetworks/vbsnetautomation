@@ -1,0 +1,2319 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+<!--
+    Konu: Cisco cihazlara IOS güncellemesi, Radius, SSH  konfigurasyonu ve Seri numarasi kaydi yapilmasi amaciyla gelistirlmistir..
+    Yazilimi Gelistiren: OS
+    e-Posta: os... at gmail dot com
+-->
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-9" /></meta>
+
+	<HTA:APPLICATION 
+     ID="oHTA"
+     APPLICATIONNAME="Cisco Ag Cihazi islemleri"
+     BORDER="thin"
+     BORDERSTYLE="normal"
+     CAPTION="yes"
+     ICON="cisco_logo.ico"
+     MAXIMIZEBUTTON="no"
+     MINIMIZEBUTTON="yes"
+     SHOWINTASKBAR="yes"
+     SINGLEINSTANCE="no"
+     SYSMENU="yes"
+     VERSION="10.4"
+     WINDOWSTATE="normal"/>
+
+<style type="text/css">
+* {
+	margin: 0;
+	padding: 0;
+}
+
+html {
+	background: #ddd;
+}
+
+body {
+	margin: 1em 1%;
+	padding: 1em 3em;
+	font: 80%/1.4 tahoma, arial, helvetica, lucida sans, sans-serif;
+	border: 1px solid #999;
+	background: #eee;
+	position: relative;
+}
+h2 {
+	margin: 0.8em 0 0 0;
+}
+
+ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+ul.projects {
+	list-style: none;
+	line-height: 24x;
+}
+ul.projects a {
+	padding-left: 22px;
+}
+</style>
+
+
+<script type="text/javascript">
+
+  var d = new Date();
+
+  var curr_hour = d.getHours();
+  var curr_min = d.getMinutes();
+  var SelectMesaj = "";
+
+  if (curr_hour < 12) {
+    restartDeviceSaati = "12:30";
+    DigerSaat = "23:30";
+  } else if ( (curr_hour == 12) & (curr_min <= 25) ) {
+    restartDeviceSaati = "12:30";
+    DigerSaat = "23:30";
+  } else {
+    restartDeviceSaati = "23:30";
+    DigerSaat = "12:30";
+  }
+
+  SelectMesaj = "<select name='Saat' size='1'> ";
+  SelectMesaj = SelectMesaj + "<option  value='" + restartDeviceSaati + "' selected>"+restartDeviceSaati+"</option>";
+  SelectMesaj = SelectMesaj + "<option  value='" + DigerSaat + "'>"+DigerSaat+"</option>";
+  SelectMesaj = SelectMesaj + "</select>";
+</script>
+
+<script type="text/javascript">
+
+  function b64_md5(p) {
+    return binl2b64(core_md5(str2binl(p),p.length*8));
+	}
+
+  function binl2b64(binarray) {
+    var tab='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz012345678998!+%&/??#$';
+  	var str='';
+  	for(var i=0; i<binarray.length*4; i+=3) {
+      var triplet=(((binarray[i>>2]>>8*(i%4))&0xFF)<<16)|(((binarray[i+1>>2]>>8*((i+1)%4))&0xFF)<<8)|((binarray[i+2>>2]>>8*((i+2)%4))&0xFF);
+ 			for(var j=0; j<4; j++) str+=tab.charAt((triplet>>6*(3-j))&0x3F);
+		}
+    return str;
+	}
+
+	function hex_md5(p) {
+		return binl2hex(core_md5(str2binl(p),p.length*8));
+	}
+
+	function binl2hex(binarray) {
+		var hex_tab='0123456789abcdef';
+		var str='';
+		for(var i=0; i<binarray.length*4; i++) {
+			str+=hex_tab.charAt((binarray[i>>2]>>((i%4)*8+4))&0xF)+hex_tab.charAt((binarray[i>>2]>>((i%4)*8))&0xF);
+		}
+		return str;
+	}
+
+  function core_md5(x,len) {
+    x[len>>5]|=0x80<<((len)%32);
+		x[(((len+64)>>>9)<<4)+14]=len;
+		var a=1732584193;
+		var b=-271733879;
+		var c=-1732584194;
+		var d=271733878;
+		for(var i=0; i<x.length; i+=16) {
+      var olda=a;
+  		var oldb=b;
+  		var oldc=c;
+  		var oldd=d;
+  		a=md5_ff(a,b,c,d,x[i+0],7,-680876936);
+  		d=md5_ff(d,a,b,c,x[i+1],12,-389564586);
+  		c=md5_ff(c,d,a,b,x[i+2],17,606105819);
+  		b=md5_ff(b,c,d,a,x[i+3],22,-1044525330);
+  		a=md5_ff(a,b,c,d,x[i+4],7,-176418897);
+  		d=md5_ff(d,a,b,c,x[i+5],12,1200080426);
+  		c=md5_ff(c,d,a,b,x[i+6],17,-1473231341);
+  		b=md5_ff(b,c,d,a,x[i+7],22,-45705983);
+  		a=md5_ff(a,b,c,d,x[i+8],7,1770035416);
+  		d=md5_ff(d,a,b,c,x[i+9],12,-1958414417);
+  		c=md5_ff(c,d,a,b,x[i+10],17,-42063);
+  		b=md5_ff(b,c,d,a,x[i+11],22,-1990404162);
+  		a=md5_ff(a,b,c,d,x[i+12],7,1804603682);
+  		d=md5_ff(d,a,b,c,x[i+13],12,-40341101);
+  		c=md5_ff(c,d,a,b,x[i+14],17,-1502002290);
+  		b=md5_ff(b,c,d,a,x[i+15],22,1236535329);
+  		a=md5_gg(a,b,c,d,x[i+1],5,-165796510);
+  		d=md5_gg(d,a,b,c,x[i+6],9,-1069501632);
+  		c=md5_gg(c,d,a,b,x[i+11],14,643717713);
+  		b=md5_gg(b,c,d,a,x[i+0],20,-373897302);
+  		a=md5_gg(a,b,c,d,x[i+5],5,-701558691);
+  		d=md5_gg(d,a,b,c,x[i+10],9,38016083);
+  		c=md5_gg(c,d,a,b,x[i+15],14,-660478335);
+  		b=md5_gg(b,c,d,a,x[i+4],20,-405537848);
+  		a=md5_gg(a,b,c,d,x[i+9],5,568446438);
+  		d=md5_gg(d,a,b,c,x[i+14],9,-1019803690);
+  		c=md5_gg(c,d,a,b,x[i+3],14,-187363961);
+  		b=md5_gg(b,c,d,a,x[i+8],20,1163531501);
+  		a=md5_gg(a,b,c,d,x[i+13],5,-1444681467);
+  		d=md5_gg(d,a,b,c,x[i+2],9,-51403784);
+  		c=md5_gg(c,d,a,b,x[i+7],14,1735328473);
+  		b=md5_gg(b,c,d,a,x[i+12],20,-1926607734);
+  		a=md5_hh(a,b,c,d,x[i+5],4,-378558);
+  		d=md5_hh(d,a,b,c,x[i+8],11,-2022574463);
+  		c=md5_hh(c,d,a,b,x[i+11],16,1839030562);
+  		b=md5_hh(b,c,d,a,x[i+14],23,-35309556);
+  		a=md5_hh(a,b,c,d,x[i+1],4,-1530992060);
+  		d=md5_hh(d,a,b,c,x[i+4],11,1272893353);
+  		c=md5_hh(c,d,a,b,x[i+7],16,-155497632);
+  		b=md5_hh(b,c,d,a,x[i+10],23,-1094730640);
+  		a=md5_hh(a,b,c,d,x[i+13],4,681279174);
+  		d=md5_hh(d,a,b,c,x[i+0],11,-358537222);
+  		c=md5_hh(c,d,a,b,x[i+3],16,-722521979);
+  		b=md5_hh(b,c,d,a,x[i+6],23,76029189);
+  		a=md5_hh(a,b,c,d,x[i+9],4,-640364487);
+  		d=md5_hh(d,a,b,c,x[i+12],11,-421815835);
+  		c=md5_hh(c,d,a,b,x[i+15],16,530742520);
+  		b=md5_hh(b,c,d,a,x[i+2],23,-995338651);
+  		a=md5_ii(a,b,c,d,x[i+0],6,-198630844);
+  		d=md5_ii(d,a,b,c,x[i+7],10,1126891415);
+  		c=md5_ii(c,d,a,b,x[i+14],15,-1416354905);
+  		b=md5_ii(b,c,d,a,x[i+5],21,-57434055);
+  		a=md5_ii(a,b,c,d,x[i+12],6,1700485571);
+  		d=md5_ii(d,a,b,c,x[i+3],10,-1894986606);
+  		c=md5_ii(c,d,a,b,x[i+10],15,-1051523);
+  		b=md5_ii(b,c,d,a,x[i+1],21,-2054922799);
+  		a=md5_ii(a,b,c,d,x[i+8],6,1873313359);
+  		d=md5_ii(d,a,b,c,x[i+15],10,-30611744);
+  		c=md5_ii(c,d,a,b,x[i+6],15,-1560198380);
+  		b=md5_ii(b,c,d,a,x[i+13],21,1309151649);
+  		a=md5_ii(a,b,c,d,x[i+4],6,-145523070);
+  		d=md5_ii(d,a,b,c,x[i+11],10,-1120210379);
+  		c=md5_ii(c,d,a,b,x[i+2],15,718787259);
+  		b=md5_ii(b,c,d,a,x[i+9],21,-343485551);
+  		a=safe_add(a,olda);
+  		b=safe_add(b,oldb);
+  		c=safe_add(c,oldc);
+  		d=safe_add(d,oldd);
+  	}
+    return Array(a,b,c,d);
+	}
+
+  function md5_cmn(q,a,b,x,s,t) {
+    return safe_add(bit_rol(safe_add(safe_add(a,q),safe_add(x,t)),s),b);
+	}
+
+  function md5_ff(a,b,c,d,x,s,t) {
+    return md5_cmn((b&c)|((~b)&d),a,b,x,s,t);
+  }
+
+  function md5_gg(a,b,c,d,x,s,t) {
+    return md5_cmn((b&d)|(c&(~d)),a,b,x,s,t);
+  }
+
+  function md5_hh(a,b,c,d,x,s,t) {
+    return md5_cmn(b^c^d,a,b,x,s,t);
+  }
+
+  function md5_ii(a,b,c,d,x,s,t) {
+    return md5_cmn(c^(b|(~d)),a,b,x,s,t);
+  }
+
+  function safe_add(x,y) {
+    var lsw=(x&0xFFFF)+(y&0xFFFF);
+  	var msw=(x>>16)+(y>>16)+(lsw>>16);
+  	return (msw<<16)|(lsw&0xFFFF);
+  }
+
+  function bit_rol(num,cnt) {
+    return (num<<cnt)|(num>>>(32-cnt));
+  }
+
+  function str2binl(str) {
+    var bin=Array();
+  	var mask=(1<<8)-1;
+  	for(var i=0; i<str.length*8; i+=8) bin[i>>5]|=(str.charCodeAt(i/8)&mask)<<(i%32);
+		return bin;
+	}
+
+	function SGPLocal(Passwd, Domain, Len) {
+
+    if ( Passwd && Domain ) {
+
+      DomainIsolator = new RegExp("([^/:]+)");
+
+      var HostName = Domain.replace(/^\s*|\s*$/g,'');
+      Len = (parseInt(Len)) ? parseInt(Len) : 10;
+      if ( Len == 0 ) Len = 10;
+      if ( Len < 4 )  Len = 4;
+      if ( Len > 24 ) Len = 24;
+
+      PassCand = Passwd + ':' + Domain;
+      for ( var i = 0; i < 10; i++ ) 
+        PassCand = b64_md5(PassCand);
+		
+      while ( PassCand.substr(0, Len).search(/[a-z]/) != 0 || PassCand.substr(0, Len).search(/[A-Z]/) == -1 || PassCand.substr(0, Len).search(/[0-9]/) == -1 ) 
+        PassCand = b64_md5(PassCand);
+		
+      PassCand = PassCand.substr(0, Len);
+      return PassCand;
+      
+    } else {
+      alert('Empty password or domain.');
+
+    }
+
+  }
+
+</script>
+
+<script language="vbscript" type="text/vbscript">
+'Import "degiskenler.inc"
+Dim w3Sock
+Dim LoginUser, LoginPass, isradiusOK, waitingTime, iosUpdated
+Dim startTime, iTimerID, Sayac : Sayac = 0
+Dim StartTime, CiscoIOSModel, isSSHOK, deviceType
+Const ForReading = 1, ForWriting = 2, ForAppending = 8
+Dim TempFile, Grep, Cut, iosHash, CiscoModel, strError
+Dim radiusSrv1, radiusSrv2, ntpSrv, ftpSrv, systemMgmt
+Dim UserPassCounter : UserPassCounter = 0
+
+deviceType = ""
+winRootFolder = "c:\windows\"
+sys32Folder = winRootFolder & "system32\"
+TempFile = winRootFolder & "temp\komut.tmp"
+Grep = sys32Folder & "grep.exe"
+Cut = sys32Folder & "cut.exe"
+LoginUser = "<write_here_login_username>"
+LoginPass = "<write_here_user_password>"
+ftpUser = "<write_here_ftp_user>"
+ftpPass = "<write_here_ftp_password>"
+ProcName = "tftpd32.exe"
+RadiusKey = "<write_here_radius_key>"
+SocketDLL = sys32Folder & "Socket.dll"
+tftpdOldPath = "c:\tools\pxe"
+tftpdNewPath = "c:\tools\router_images"
+isradiusOK = False
+waitingTime = 360000 '6 minutes waiting time for telnet session.
+'sourceFolder = "c:\tools\router_images"
+destFolder = "c:\tools\router_images"
+tftpd32Path = sys32Folder & "tftpd32.exe"
+tftp32DestPath = "c:\tools\router_images\tftpd32.exe"
+serialFile = "c:\Cisco_serial.txt"
+updatedDevices = "c:\Cisco_IOS_Guncellemesi_Yapilanlar.txt"
+deviceList = "c:\tools\router_images\ip.txt"
+REGSVR32 = sys32Folder & "regsvr32.exe /s"
+SunucuSuffix = "241"
+isSSHOK = False
+iosUpdated = False
+strError = False
+ftpSrv = "10.X.Y.100"
+radiusSrv1 = "10.X.Y.100"
+radiusSrv2 = "10.X.Y.70"
+ntpSrv = "10.X.2.49"
+systemMgmt = array("10.X.Y.18","10.X.Y.19","10.X.Y.21","10.X.Y.26","10.X.Y.32","10.X.Y.46","10.X.Y.43")
+
+'on error resume next
+
+Sub ChooseSaveFolder
+    strStartDir = "c:\"
+    userselections.txtFile.value = PickFolder(strStartDir)
+End Sub
+
+Function PickFolder(strStartDir)
+Dim SA, F
+Set SA = CreateObject("Shell.Application")
+Set F = SA.BrowseForFolder(0, "Choose a folder", 0, strStartDir)
+If (Not F Is Nothing) Then
+  PickFolder = F.Items.Item.path
+End If
+Set F = Nothing
+Set SA = Nothing
+End Function 
+
+Function runCommand(AraBirim, Komut, IPAdres)
+
+  ipOctets = Split(IPAdres, ".", -1, 1)
+
+  startTelnet IPAdres, TelnetSifre, EnableSifre
+  routerIP = ipOctets(0) & "." & ipOctets(1) & "." & ipOctets(2) & ".254"
+
+  w3sock.SendLine ""
+  w3sock.WaitFor  "#"
+  w3sock.SendLine "terminal length 0"
+  w3sock.WaitFor  "#"
+
+  w3sock.SendLine "sh ip int br | i " & AraBirim
+  w3sock.WaitFor  "#"
+  
+  cikti =  w3sock.Buffer
+ 
+  TemporaryFile = TempFile & "." & replace(Timer(),",","")
+  ret = DosyayaYaz(cikti, TemporaryFile, ForWriting, True)
+  
+  Set WShell = CreateObject("WScript.Shell")
+  strRun = "%comspec% /c " & Grep & " assign " & TemporaryFile & " | "& Cut & " -f1 -d" & Chr(34) & " " & Chr(34)
+  Set objExecObject = WShell.Exec(strRun)
+  Do Until objExecObject.StdOut.AtEndOfStream
+    strLine = objExecObject.StdOut.ReadLine()
+  Loop
+  interface = trim(strLine)
+  
+  w3sock.SendLine "conf t"
+  w3sock.WaitFor "#"
+  w3sock.SendLine "int " & interface & ".1"
+  w3sock.WaitFor "#"
+  w3sock.SendLine Komut
+  w3sock.WaitFor "#"
+  w3sock.SendLine "end"
+  w3sock.WaitFor "#"
+  w3sock.SendLine "wr"
+  w3sock.WaitFor "#"
+
+  'MsgBox "Arabirim: " & Arabirim & " IPAdres:" & IPAdres & " komut: " & komut 
+  'MsgBox strRun
+  strRun = "%comspec% /c del " & TemporaryFile
+  WShell.Exec(strRun)
+
+  runCommand = True
+  
+  If TelnetKapat Then
+    closeTelnet()
+  End If
+  
+End Function
+
+Function RemoteCopyFile(KaynakDosya, HedefDosya, HedefBilgisayar)
+  Dim lRetVal
+  'create file system object
+  Set objFS=CreateObject("Scripting.FileSystemObject")
+  PaylasilanHedefDosya=replace(HedefDosya,":","$") 
+  lRetVal=objFS.CopyFile (KaynakDosya, "\\" & HedefBilgisayar & "\" & PaylasilanHedefDosya)
+  If lRetVal=0 Then
+    RemoteCopyFile=True
+  Else
+    RemoteCopyFile=False
+  End If
+  
+End Function
+
+sub onLoad 
+  call setupAppWindow 
+end sub 
+  
+sub setupAppWindow 
+     self.ResizeTo 720,900 
+end sub 
+
+Sub sleepaWhile(intSeconds)  
+  Dim objShell, strCommand  
+  Set objShell = CreateObject("Wscript.Shell")  
+  strCommand = "%COMSPEC% /c ping -n " & 1 + intSeconds/1000 & " 127.0.0.1>nul"  
+  objShell.Run strCommand, 0, True  
+  Set objShell = Nothing  
+End Sub 
+
+Function runCommand(HedefBilgisayar, ProcName, runCommandilacakYer)
+
+  Set objWMIService = GetObject("winmgmts:" _
+      & "{impersonationLevel=impersonate}!\\" & HedefBilgisayar & "\root\cimv2")
+  Set objProcess = objWMIService.Get("Win32_Process")
+
+'  errReturn = objProcess.Create(ProcName, null, null, intProcessID)
+  errReturn = objProcess.Create(ProcName, runCommandilacakYer, null, intProcessID)
+
+  If errReturn = 0 Then
+    'MsgBox ProcName & " was started with a process ID: " & intProcessID
+    p2.InnerHTML="<span> \\" & HedefBilgisayar & "\" & ProcName & " çalistirildi. Process ID: " & intProcessID & "</span>"
+    runCommand = True
+  Else
+    'MsgBox ProcName & " could not be started due to error: " & errReturn
+    p2.InnerHTML="<span> \\" & HedefBilgisayar & "\" & ProcName & " ÇALIsTIRILAMADI. HATA KODU: " & errReturn & "</span>"
+    runCommand = False
+  End If
+  
+End Function
+
+Function TerminateProc(HedefBilgisayar, ProcName)
+  Sonlandir = False
+  Set objWMIService = GetObject("winmgmts:" _
+      & "{impersonationLevel=impersonate}!\\" & HedefBilgisayar & "\root\cimv2")
+  Set colProcessList = objWMIService.ExecQuery _
+      ("Select * from Win32_Process Where Name = '" & ProcName &"'")
+  For Each objProcess in colProcessList
+      objProcess.Terminate()
+      Sonlandir = True
+  Next
+  TerminateProc = Sonlandir
+End Function
+
+Function GetProcDir(HedefBilgisayar, ProcName)
+
+  'Option Explicit
+  Dim objWMIService, objProcess, colProcess
+  Dim strList
+
+  Set objWMIService = GetObject("winmgmts:" _
+      & "{impersonationLevel=impersonate}!\\" _
+      & HedefBilgisayar & "\root\cimv2")
+
+  Set colProcess = objWMIService.ExecQuery _
+      ("Select * from Win32_Process where Name='" & ProcName & "'")
+
+  For Each objProcess in colProcess
+    strList = strList & objProcess.CommandLine
+  Next
+  GetProcDir = strList
+  
+End Function
+
+Function fileCheck(HedefBilgisayar, DosyaYolu)
+  DosyaYolu = replace(DosyaYolu,"\","\\")
+  Set objWMIService = GetObject("winmgmts:" _
+      & "{impersonationLevel=impersonate}!\\" _
+      & HedefBilgisayar & "\root\cimv2")
+  Set colFiles = objWMIService.ExecQuery _
+      ("SELECT * FROM CIM_Datafile WHERE Name = '"& DosyaYolu & "'")
+  For Each objFile in colFiles
+    ' Wscript.Echo "Access mask: " & objFile.AccessMask
+    ' Wscript.Echo "Archive: " & objFile.Archive
+    ' Wscript.Echo "Compressed: " & objFile.Compressed
+    ' Wscript.Echo "Compression method: " & objFile.CompressionMethod
+    ' Wscript.Echo "Creation date: " & objFile.CreationDate
+    ' Wscript.Echo "Computer system name: " & objFile.CSName
+    ' Wscript.Echo "Drive: " & objFile.Drive
+    ' Wscript.Echo "8.3 file name: " & objFile.EightDotThreeFileName
+    ' Wscript.Echo "Encrypted: " & objFile.Encrypted
+    ' Wscript.Echo "Encryption method: " & objFile.EncryptionMethod
+    ' Wscript.Echo "Extension: " & objFile.Extension
+    ' Wscript.Echo "File name: " & objFile.FileName
+    ' Wscript.Echo "File size: " & objFile.FileSize
+    ' Wscript.Echo "File type: " & objFile.FileType
+    ' Wscript.Echo "File system name: " & objFile.FSName
+    ' Wscript.Echo "Hidden: " & objFile.Hidden
+    ' Wscript.Echo "Last accessed: " & objFile.LastAccessed
+    ' Wscript.Echo "Last modified: " & objFile.LastModified
+    ' Wscript.Echo "Manufacturer: " & objFile.Manufacturer
+    ' Wscript.Echo "Name: " & objFile.Name
+    ' Wscript.Echo "Path: " & objFile.Path
+    ' Wscript.Echo "Readable: " & objFile.Readable
+    ' Wscript.Echo "System: " & objFile.System
+    ' Wscript.Echo "Version: " & objFile.Version
+    ' Wscript.Echo "Writeable: " & objFile.Writeable
+    DosyaAdi = objFile.Name
+  Next
+  fileCheck = DosyaAdi
+End Function 
+
+Function folderCheck(HedefBilgisayar, Klasor)
+  On Error Resume Next
+  Klasor = replace(Klasor,"\","\\")
+  Set objWMIService = GetObject("winmgmts:" _
+      & "{impersonationLevel=impersonate}!\\" & HedefBilgisayar & "\root\cimv2")
+  Set colFiles = objWMIService.ExecQuery _
+      ("SELECT * FROM Win32_Directory WHERE Name = '"& Klasor & "'")
+  For Each objFile in colFiles
+    KlasorAdi = objFile.Name
+  Next
+  
+  folderCheck = KlasorAdi 
+End Function 
+
+Function isAccessible(strTarget)
+  ' On Error Resume Next
+
+  Dim wmiQuery, objWMIService, objPing, objStatus
+
+  wmiQuery = "Select * From Win32_PingStatus Where Timeout = 1000 and Address = '" & strTarget & "'"
+
+  Set objWMIService = GetObject("winmgmts:\\.\root\cimv2")
+  Set objPing = objWMIService.ExecQuery(wmiQuery)
+  For Each objStatus in objPing
+    If IsNull(objStatus.StatusCode) Or objStatus.Statuscode <> 0 Then
+      isAccessible = False 'if computer is unreacable, return false
+    Else
+      isAccessible = True 'if computer is reachable, return true
+    End If
+  Next
+End Function
+
+Function isValidIP(IPAdres)
+  isValidIP = True
+  IPAdres_lst = split(IPAdres, ".")
+  If uBound(IPAdres_lst) = 3 Then
+    For Each ipOctets In IPAdres_lst
+      If Not isNumeric(ipOctets) Then
+        isValidIP = False
+        Exit For
+      ElseIf ipOctets > 255 Then
+        isValidIP = False
+      End If
+    Next
+  Else
+    isValidIP = False
+  End If
+End Function
+
+Function findModel(IPAdres)
+  ipOctets = Split(IPAdres, ".", -1, 1)
+
+  If InStr(1,CiscoIOSModel,"c7200") Then
+    findModel = "7206"
+    deviceType = "Yönlendirici"
+    Exit Function
+  ElseIf InStr(1,CiscoIOSModel,"c2800nm") Then
+    findModel = "2811"
+    deviceType = "Yönlendirici"
+    Exit Function
+  ElseIf InStr(1,CiscoIOSModel,"c2801") Then
+    findModel = "2801"
+    deviceType = "Yönlendirici"
+    Exit Function
+  ElseIf InStr(1,CiscoIOSModel,"c2600") Then
+    findModel = "2650"
+    deviceType = "Yönlendirici"
+    Exit Function
+  ElseIf InStr(1,CiscoIOSModel,"c1841") Then
+    findModel = "1841"
+    deviceType = "Yönlendirici"
+    Exit Function
+  ElseIf InStr(1,CiscoIOSModel,"c1700") Then
+    findModel = "1760"
+    deviceType = "Yönlendirici"
+    Exit Function
+  ElseIf InStr(1,CiscoIOSModel,"c3560") Then
+    findModel = "3560"
+    deviceType = "Anahtar"
+    Exit Function
+  ElseIf InStr(1,CiscoIOSModel,"c3550") Then
+    findModel = "3550"
+    deviceType = "Anahtar"
+    Exit Function
+  ElseIf InStr(1,CiscoIOSModel,"c2970") Then 
+    findModel = "2970"
+    deviceType = "Anahtar"
+    Exit Function
+  ElseIf InStr(1,CiscoIOSModel,"c2960") Then 
+    findModel = "2960"
+    deviceType = "Anahtar"
+    Exit Function
+  ElseIf InStr(1,CiscoIOSModel,"c2950") Then 
+    findModel = "2950"
+    deviceType = "Anahtar"
+    Exit Function
+  ElseIf InStr(1,CiscoIOSModel,"cat4500") Then 
+    findModel = "4500"
+    deviceType = "Anahtar"
+    Exit Function
+  Else
+    findModel = False
+    Exit Function
+  End If
+End Function
+
+Function startTelnet (IPAdres, TelnetSifre, EnableSifre)
+  On Error Resume Next
+  'MsgBox "IPAdres: " & IPAdres & " telnet: " & TelnetSifre & " en: " & EnableSifre
+  ipOctets = Split(IPAdres, ".", -1, 1)
+  'MsgBox "IP:" & ipOctets(0) & " " & ipOctets(1) & " " & ipOctets(2) &" " & ipOctets(3)
+  If isradiusOK Then
+    TelnetParola = ""
+    EnableParola = ""
+  Else
+    If TelnetSifre <> "" Then
+      TelnetParola = TelnetSifre
+      EnableParola = EnableSifre
+    ElseIf (ipOctets(1) = "251" Or ipOctets(1) = "252") Or (ipOctets(1) = "6" And ipOctets(2) = "254") Then
+      TelnetParola = "<write_here_telnet_password>"
+      EnableParola = "<write_here_enable_password>"
+    ElseIf ipOctets(3) <> "254" Then
+      If UserPassCounter <> 2 Then
+        TelnetParola = "b"
+        EnableParola = "b"
+      End If
+    ElseIf (ipOctets(1) = "251" Or ipOctets(1) = "252") Or (ipOctets(1) = "6" And ipOctets(2) = "254") Then
+      If UserPassCounter <> 2 Then
+        TelnetParola = "a"
+        EnableParola = "a"
+      End If
+    End If
+  End If
+
+  Set WShell = CreateObject("WScript.Shell")
+  WShell.Run REGSVR32 & " " & SocketDLL
+  Set w3sock = CreateObject("socket.tcp")   
+  w3sock.DoTelnetEmulation = True
+  w3sock.TelnetEmulation = "TTY"
+  w3sock.Host = IPAdres & ":23"
+  w3sock.Open
+  If TelnetParola <> "" Then
+    If UserPassCounter = 2 Then
+      w3sock.SendLine TelnetParola
+      w3sock.WaitFor  "Password:"
+      w3sock.SendLine EnableParola
+      w3sock.SendLine ""
+      w3sock.WaitFor  "#"
+      w3sock.SendLine ""
+    Else
+      w3sock.SendLine TelnetParola
+      w3sock.WaitFor  ">"
+      w3sock.SendLine "en"
+      w3sock.WaitFor  "Password:"
+      w3sock.SendLine EnableParola
+      w3sock.SendLine ""
+      'w3sock.WaitFor  "#"
+    End If
+  Else
+    w3sock.SendLine LoginUser
+    w3sock.WaitFor  "Password:"
+    w3sock.SendLine LoginPass
+    w3sock.WaitFor  "#"
+    w3sock.SendLine "conf t"
+    w3sock.WaitFor  "config)#"
+    w3sock.SendLine "end"
+    w3sock.WaitFor  "#"
+  End If
+
+  If Err.Number <> 0 Then 
+    p2.InnerHTML="<span>"& CihazIP & " HATA OLUsTU! TELNET BAgLANTISI SAgLANAMADI. Program sonlandi.. </span>"
+    'MsgBox "Error # " & CStr(Err.Number) & " " & Err.Description
+    p3.InnerHTML="<span>Error # " & CStr(Err.Number) & " " & Err.Description & " </span>"
+    Err.Clear   ' Clear the error.
+    startTelnet = False
+   Exit Function
+  End If
+  On Error GoTo 0
+
+  startTelnet = True
+End Function
+
+Sub closeTelnet()
+  w3sock.SendLine "exit"
+  w3sock.Close
+End Sub
+
+Function RadiusConf(IPAdres, TelnetSifre, EnableSifre, LokalSifre)
+  iosUpdated = isIOSUpdated (IpAdres, TelnetSifre, EnableSifre)
+  ipOctets = Split(IPAdres, ".", -1, 1)
+
+  startTelnet IPAdres, TelnetSifre, EnableSifre
+  routerIP = ipOctets(0) & "." & ipOctets(1) & "." & ipOctets(2) & ".254"
+  
+  w3sock.SendLine ""
+  w3sock.WaitFor  "#"
+  w3sock.SendLine "terminal length 0"
+  w3sock.WaitFor  "#"
+  w3sock.SendLine "sh crypto key mypubkey rsa"
+  sleepaWhile("1000")
+  w3sock.WaitFor  "#"
+  sleepaWhile("1000")
+  MyKey = w3sock.Buffer
+  If (ipOctets(1) = "251" Or ipOctets(1) = "252") Or (ipOctets(1) = "6" And ipOctets(2) = "254") Then '10.252.0.0 veya 10.X.0.0 ise devam et.
+    w3sock.SendLine "conf t"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "username sadmin privilege 15 secret " & LokalSifre
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "aaa new-model"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "aaa authentication login default group radius local"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "aaa authentication enable default group radius"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "aaa authorization exec default group radius local"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "aaa authorization network default group radius local"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "aaa authorization console"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "aaa accounting delay-start"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "aaa accounting exec default start-stop group radius"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "aaa accounting network default start-stop group radius"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "radius-server host " & radiusSrv1 & " auth-port 1812 acct-port 1813 key " & RadiusKey
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "radius-server host " & radiusSrv2 & " auth-port 1812 acct-port 1813 key " & RadiusKey
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "service password-encryption"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "no enable secret"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "no enable password"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "no ip domain-lookup"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "ip ftp username " & ftpUser
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "ip ftp password " & ftpPass
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "archive"
+    w3sock.WaitFor  ")#"
+    w3sock.SendLine "log config"
+    w3sock.WaitFor  ")#"
+    w3sock.SendLine "logging enable"
+    w3sock.WaitFor  ")#"
+    w3sock.SendLine "logging size 500"
+    w3sock.WaitFor  ")#"
+    w3sock.SendLine "notify syslog"
+    w3sock.WaitFor  ")#"
+    w3sock.SendLine "hidekeys"
+    w3sock.WaitFor  ")#"
+    w3sock.SendLine "path ftp://" & ftpSrv & "/config/$h-$t"
+    w3sock.WaitFor  ")#"
+    w3sock.SendLine "write-memory"
+    w3sock.WaitFor  ")#"
+    w3sock.SendLine "no ip http server"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "no ip http access-class 23"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "no access-list 23"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "no snmp-server enable traps"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "no snmp-server community public RO"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "banner login c"& vbCr &"#####################################################"& vbCr &"###           !!!DIKKAT!!!                        ###"& vbCr &"###           Yetkili Girisi!                     ###" & vbCr & "### Yetkili degilseniz hemen baglatinizi kesiniz. ###" & vbCr & "### Yapilan islemlerinin kayitlari tutulmaktadir. ### "& vbCr &"#####################################################"& vbCr &"c"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "clock timezone Turkiye 2"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "clock summer-time Turkiye recurring last Sun Mar 1:00 last Sun Oct 1:00"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "service timestamps debug datetime localtime msec"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "service timestamps log datetime localtime msec"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "no ntp server 10.X.94.253"
+    w3sock.SendLine "no ntp server 10.X.94.254"
+    w3sock.SendLine "ntp server " & ntpSrv
+    w3sock.SendLine "no access-list 10 "
+    For Each ip in systemMgmt
+      w3sock.SendLine "access-list 10 permit host " & ip
+      w3sock.SendLine ""
+    Next
+    w3sock.SendLine "login on-success log"
+    w3sock.SendLine "login on-failure log"
+    w3sock.SendLine "login block-for 300 attempts 3 within 30"
+    w3sock.SendLine "login quiet-mode access-class 10"
+    w3sock.SendLine "line vty 0 15"
+    w3sock.WaitFor  "(config-line)#"
+    w3sock.SendLine "access-class 10 in"
+    w3sock.WaitFor  "(config-line)#"
+  Else ' IP adresi != 10.X.0.0 veya 10.252.0.0 veya 10.6.254.0 ise  
+    w3sock.SendLine "conf t"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "logging buffered debugging"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "username sadmin privilege 15 secret " & LokalSifre
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "no username netadmin "
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "no username net_admin "
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "no username cisco "
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "aaa new-model"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "aaa authentication login default group radius local"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "aaa authentication enable default group radius"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "aaa authorization exec default group radius local"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "aaa authorization network default group radius local"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "aaa authorization console"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "aaa accounting delay-start"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "aaa accounting exec default start-stop group radius"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "aaa accounting network default start-stop group radius"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "radius-server host " & radiusSrv1 & " auth-port 1812 acct-port 1813 key " & RadiusKey
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "radius-server host " & radiusSrv2 & " auth-port 1812 acct-port 1813 key " & RadiusKey
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "service password-encryption"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "no enable secret"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "no enable password"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "no ip domain-lookup"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "ip ftp username " & ftpUser
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "ip ftp password " & ftpPass
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "archive"
+    w3sock.WaitFor  ")#"
+    w3sock.SendLine "log config"
+    w3sock.WaitFor  ")#"
+    w3sock.SendLine "logging enable"
+    w3sock.WaitFor  ")#"
+    w3sock.SendLine "logging size 500"
+    w3sock.WaitFor  ")#"
+    w3sock.SendLine "notify syslog"
+    w3sock.WaitFor  ")#"
+    w3sock.SendLine "hidekeys"
+    w3sock.WaitFor  ")#"
+    w3sock.SendLine "path ftp://" & ftpSrv & "/config/$h-$t"
+    w3sock.WaitFor  ")#"
+    w3sock.SendLine "write-memory"
+    w3sock.WaitFor  ")#"
+    w3sock.SendLine "no ip http server"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "no ip http access-class 23"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "no access-list 23"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "no snmp-server enable traps"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "no snmp-server community public RO"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "no snmp-server host 10.X.Y.100 public"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "no snmp-server host 10.X.Y.100 SBSvedop2"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "no snmp-server community SBS$vedop2$ RW"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "snmp-server community SBSvedop2 RO"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "banner login # $(hostname) #"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "clock timezone Turkiye 2"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "clock summer-time Turkiye recurring last Sun Mar 1:00 last Sun Oct 1:00"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "service timestamps debug datetime localtime msec"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "service timestamps log datetime localtime msec"
+    w3sock.WaitFor  "(config)#"
+    w3sock.SendLine "no sntp server 10.X.94.253"
+    w3sock.SendLine "access-list 10 permit 10.X.Y.0 0.0.0.255"
+    w3sock.SendLine "login on-success log"
+    w3sock.SendLine "login on-failure log"
+    w3sock.SendLine "login block-for 300 attempts 3 within 30"
+    w3sock.SendLine "login quiet-mode access-class 10"
+    If ipOctets(3) = "254" Then
+      w3sock.SendLine ""
+      w3sock.SendLine "no username AccessRouter "
+      w3sock.WaitFor  "(config)#"
+      w3sock.SendLine "no chat-script Dialout ABORT ERROR ABORT BUSY " & Chr(34) & Chr(34) & " " &  Chr(34) & "AT" & Chr(34) & " OK " & Chr(34) & "ATDT \T" & Chr(34) & " TIMEOUT 45 CONNECT \c "
+      w3sock.WaitFor  "(config)#"
+      w3sock.SendLine "no ntp "
+      w3sock.WaitFor  "(config)#"
+      w3sock.SendLine "no ntp server 10.X.94.253"
+      w3sock.WaitFor  "(config)#"
+      w3sock.SendLine "ntp server 10.X.2.49"
+      w3sock.WaitFor  "(config)#"
+      w3sock.SendLine "no ip http access-class 23"
+      w3sock.WaitFor  "(config)#"
+      w3sock.SendLine "no access-list 101"
+      w3sock.WaitFor  "(config)#"
+      w3sock.SendLine "no dialer watch-list 1"
+      w3sock.WaitFor  "(config)#"
+      w3sock.SendLine "no dialer-list 1 "
+      w3sock.WaitFor  "(config)#"
+      w3sock.SendLine "no int async1"
+      w3sock.WaitFor  "(config)#"
+      w3sock.SendLine "no int async5"
+      w3sock.WaitFor  "(config)#"
+      w3sock.SendLine "ip access-list ext 110"
+      w3sock.WaitFor  "(config-ext-nacl)#"
+      w3sock.SendLine "no permit ip any 10.201.0.0 0.0.255.255"
+      w3sock.WaitFor  "(config-ext-nacl)#"
+      w3sock.SendLine "no permit ip any 10.201.4.0 0.0.0.255"
+      w3sock.WaitFor  "(config-ext-nacl)#"
+      w3sock.SendLine "no permit ip any 10.202.0.0 0.0.255.255"
+      w3sock.WaitFor  "(config-ext-nacl)#"
+      w3sock.SendLine "no permit ip any 10.203.0.0 0.0.255.255"
+      w3sock.WaitFor  "(config-ext-nacl)#"
+      w3sock.SendLine "no permit ip any 10.204.0.0 0.0.255.255"
+      w3sock.WaitFor  "(config-ext-nacl)#"
+      w3sock.SendLine "no permit ip any 10.205.0.0 0.0.255.255"
+      w3sock.WaitFor  "(config-ext-nacl)#"
+      w3sock.SendLine "no permit tcp any eq telnet any"
+      w3sock.WaitFor  "(config-ext-nacl)#"
+      w3sock.SendLine "ip access-list ext 111"
+      w3sock.WaitFor  "(config-ext-nacl)#"
+      w3sock.SendLine "no permit ip 10.201.4.0 0.0.0.255 any"
+      w3sock.WaitFor  "(config-ext-nacl)#"
+      w3sock.SendLine "no permit ip 10.201.0.0 0.0.255.255 any"
+      w3sock.WaitFor  "(config-ext-nacl)#"
+      w3sock.SendLine "no permit ip 10.202.0.0 0.0.255.255 any"
+      w3sock.WaitFor  "(config-ext-nacl)#"
+      w3sock.SendLine "no permit ip 10.203.0.0 0.0.255.255 any"
+      w3sock.WaitFor  "(config-ext-nacl)#"
+      w3sock.SendLine "no permit ip 10.204.0.0 0.0.255.255 any"
+      w3sock.WaitFor  "(config-ext-nacl)#"
+      w3sock.SendLine "no permit ip 10.205.0.0 0.0.255.255 any"
+      w3sock.WaitFor  "(config-ext-nacl)#"
+      w3sock.SendLine "no permit tcp any eq telnet any"
+      w3sock.WaitFor  "(config-ext-nacl)#"
+    Else
+      w3sock.SendLine "no ntp "
+      w3sock.WaitFor  "(config)#"
+      w3sock.SendLine "ntp server " & routerIP
+      w3sock.WaitFor  "(config)#"
+      w3sock.SendLine "spanning-tree loopguard default"
+      w3sock.WaitFor  "(config)#"
+      w3sock.SendLine "spanning-tree portfast bpdufilter default"
+      w3sock.WaitFor  "(config)#"
+    End If 'ipOctets(3) = "254"
+  End If
+  
+  w3sock.SendLine "no ip domain-lookup"
+  w3sock.WaitFor  "(config)#"
+  If (ipOctets(1) = "251" Or ipOctets(1) = "252") Or (ipOctets(1) = "6" And ipOctets(2) = "254") Then
+    w3sock.SendLine "ip domain-name ggm.bim"
+    w3sock.WaitFor  "(config)#"
+  Else
+    w3sock.SendLine "ip domain-name vedop.gov"
+    w3sock.WaitFor  "(config)#"
+  End If
+
+  w3sock.SendLine "line con 0"
+  w3sock.WaitFor  "(config-line)#"
+  w3sock.SendLine "no password"
+  w3sock.WaitFor  "(config-line)#"
+  w3sock.SendLine "line vty 0 15"
+  w3sock.WaitFor  "(config-line)#"
+  w3sock.SendLine "no password"
+  w3sock.WaitFor  "(config-line)#"
+  If (ipOctets(1) = "251" Or ipOctets(1) = "252") Or (ipOctets(1) = "6" And ipOctets(2) = "254") Then
+    w3sock.SendLine "transport input ssh telnet"
+    w3sock.WaitFor  "(config-line)#"
+  Else
+    w3sock.SendLine "no access-class 23 in"
+    w3sock.WaitFor  "(config-line)#"
+    w3sock.SendLine "transport input all"
+    w3sock.WaitFor  "(config-line)#"
+  End If
+  
+  str = Split(MyKey, " ", -1, 1)
+
+  KeyCount = 0
+  For i = 0 to UBound(str)
+      If str(i) = "Key" Then
+        KeyCount = KeyCount + 1
+        If str(i) = "Data" Then
+          KeyCount = KeyCount + 1
+        End If
+      End If
+  Next 
+ 
+  If KeyCount < 2  Then
+    If iosUpdated Then
+      w3sock.SendLine "crypto key generate rsa"
+      w3sock.WaitFor "[512]:"
+      w3sock.SendLine "1024"
+      w3sock.WaitFor  "(config)#"
+      p2.InnerHTML="<span> SSH Ayarlandi. </span>"
+      'return Mesaj2
+    End If
+  End If
+  
+  w3sock.SendLine "end"
+  w3sock.WaitFor  "#"
+  w3sock.SendLine "wr"
+  w3sock.SendLine ""
+  w3sock.SendLine ""
+  w3sock.WaitFor  "#"
+  closeTelnet()
+  RadiusConf = True
+End Function
+
+Function radiusCheck(IPAdres)
+  Dim Kontrol
+  Kontrol = False
+  Err.Clear
+  On Error Resume Next
+
+  Set WShell = CreateObject("WScript.Shell")
+  WShell.Run REGSVR32 & " " & SocketDLL
+  Set w3sock = CreateObject("socket.tcp")   
+  w3sock.DoTelnetEmulation = True
+  w3sock.TelnetEmulation = "TTY"
+  w3sock.Host = IPAdres & ":23"
+  w3sock.Open
+  w3sock.TimeOut = 10000
+  
+  If Err.Number <> 0  Then   
+    p0.InnerHTML="<span>" & IPAdres & " için Radius Kontrolü yapilirken <b>HATA</b> olustu. Program sonlandi! <br /> <b>Hata Tanimi:</b> <br />"  & Err.Description & "</span>" 
+    strError = True
+  End If
+
+  If w3sock.WaitFor ("Username:") <> True Then
+    w3sock.SendLine "exit"
+    w3sock.Close
+    isradiusOK = Kontrol
+    Exit Function
+  Else
+    w3sock.SendLine LoginUser
+    w3sock.WaitFor  "Password:"
+    w3sock.SendLine LoginPass
+    w3sock.WaitFor "#"
+    w3sock.SendLine ""
+    w3sock.SendLine "conf t"
+    If w3sock.WaitFor ("config)") <> True Then
+      Kontrol = False
+      isradiusOK = Kontrol
+      Exit Function
+    End If
+    w3sock.SendLine "end"
+    w3sock.WaitFor "#"
+    Kontrol = True
+    isradiusOK = Kontrol
+    Exit Function
+  End If
+  
+  closeTelnet()
+  isradiusOK = Kontrol
+End Function
+
+Function sshConf(IPAdres, TelnetSifre, EnableSifre, LokalSifre)
+  Dim ssh
+  ssh = False
+  iosUpdated = isIOSUpdated (IPAdres, TelnetSifre, EnableSifre)
+  If Not iosUpdated Then
+    p2.InnerHTML="<span>" & CihazIP & " IOS Güncellemesi YAPILMAMIs. SSH konfigürasyonu SONLANDI </span>"
+    sshConf = ssh
+    Exit Function
+  End If
+
+  startTelnet IPAdres, TelnetSifre, EnableSifre
+
+  w3sock.SendLine ""
+  w3sock.WaitFor  "#"
+  w3sock.SendLine "terminal length 0"
+  w3sock.WaitFor  "#"
+  w3sock.SendLine "sh crypto key mypubkey rsa"
+  sleepaWhile("1000")
+  w3sock.WaitFor  "#"
+  sleepaWhile("1000")
+  MyKey = w3sock.Buffer
+
+  str = Split(MyKey, " ", -1, 1)
+
+  KeyCount = 0
+  For i = 0 to UBound(str)
+    If str(i) = "Key" Then
+      KeyCount = KeyCount + 1
+      If str(i) = "Data" Then
+        KeyCount = KeyCount + 1
+      End If
+    End If
+  Next 
+  
+  w3sock.SendLine ""
+  w3sock.WaitFor  "#"
+  w3sock.SendLine "conf t"
+  w3sock.WaitFor  "(config)#"
+  
+  If KeyCount < 2  Then
+    If iosUpdated Then
+      w3sock.SendLine "crypto key generate rsa"
+      w3sock.WaitFor "[512]:"
+      w3sock.SendLine "1024"
+      w3sock.WaitFor  "(config)#"
+      ssh = True
+    End If
+  Else 
+    isSSHOK = True
+    ssh = True
+  End If
+  
+  w3sock.SendLine "end"
+  w3sock.WaitFor  "#"
+  w3sock.SendLine "wr"
+  w3sock.WaitFor  "#"
+  closeTelnet()
+  sshConf = ssh
+End Function
+
+Function firmwareUpgrade(TftpSrv, IPAdres, Model, CiscoIOS, LokalSifre, TelnetSifre, EnableSifre)
+  On Error Resume Next  
+  ipOctets = Split(IPAdres, ".", -1, 1)
+  Dim KopyalamaKomutu
+  KopyalamaKomutu = ""
+  TelnetKapat = True
+  startTelnet IPAdres, TelnetSifre, EnableSifre
+  w3sock.TimeOut = waitingTime
+  sleepaWhile("1000")
+  w3sock.SendLine ""
+  w3sock.WaitFor  "#"
+  w3sock.SendLine "conf t"
+  w3sock.SendLine "clock timezone Turkiye 2"
+  w3sock.WaitFor  "(config)#"
+  w3sock.SendLine "ip ftp username " & ftpUser
+  w3sock.WaitFor  "(config)#"
+  w3sock.SendLine "ip ftp password " & ftpPass
+  w3sock.WaitFor  "(config)#"
+  w3sock.SendLine "end"
+  w3sock.WaitFor  "#"
+  w3sock.SendLine "clock set " & CiscoSaat()
+  w3sock.WaitFor  "#"
+  w3sock.SendLine "wr"
+  w3sock.WaitFor  "#"
+  sleepaWhile("1000")
+  If Model = "2950" Then
+    w3sock.SendLine "delete /force /recursive flash:html/"
+    sleepaWhile("1000")
+    w3sock.WaitFor  "[html/]?"
+    w3sock.SendLine ""
+    sleepaWhile("1000")
+    w3sock.WaitFor  "#"
+    w3sock.SendLine "delete flash:c2950*"
+    sleepaWhile("1000")
+    w3sock.WaitFor  "[c2950*]?"
+    w3sock.SendLine ""
+    'sleepaWhile("1000")
+    'w3sock.WaitFor  "[confirm]"
+    w3sock.SendLine ""
+    sleepaWhile("1000")
+    w3sock.WaitFor  "#"
+    If TftpSrv = ftpSrv Then
+      KopyalamaKomutu = "archive tar /xtract ftp://" & TftpSrv & "/ios/" & CiscoIOS & " flash:"
+    Else
+      KopyalamaKomutu = "archive tar /xtract tftp://" & TftpSrv & "/" & CiscoIOS & " flash:"
+    End If
+    w3sock.SendLine KopyalamaKomutu
+    w3sock.SendLine ""
+    sleepaWhile("1000")
+    w3sock.WaitFor  "#"
+  ElseIf Model = "2960" or Model = "2970" or Model = "3550" or Model = "3560" Then
+    If TftpSrv = ftpSrv Then
+      KopyalamaKomutu = "archive download-sw /overwrite ftp://" & TftpSrv & "/ios/" & CiscoIOS
+    Else
+      KopyalamaKomutu = "archive download-sw /overwrite tftp://" & TftpSrv & "/" & CiscoIOS
+    End If
+    w3sock.SendLine ""
+    w3sock.SendLine ""
+    sleepaWhile("1000")
+    p5.InnerHTML="<span> Kopyalama Komutu: " & KopyalamaKomutu & " </span>" 
+    w3sock.SendLine KopyalamaKomutu
+    sleepaWhile("1000")
+    w3sock.WaitFor "#"
+  ElseIf Model = "1760" or Model = "1841" or Model = "2650" or Model = "2801" or Model = "2811" Then
+    
+    sleepaWhile("1000")
+    komut = "boot system"
+    ret = KomutSil(IPAdres, komut, TelnetSifre, EnableSifre)
+    sleepaWhile("1000")
+    
+    If Model = "1760" Then
+        w3sock.SendLine "delete flash:c1700*"
+        sleepaWhile("1000")
+        w3sock.WaitFor  "[c1700*]?"
+        w3sock.SendLine ""
+        w3sock.SendLine ""
+        w3sock.SendLine ""
+        w3sock.SendLine ""
+        sleepaWhile("1000")
+        w3sock.WaitFor  "#"
+    End If
+
+    If Model = "1841" Then
+        w3sock.SendLine "delete flash:c1841*"
+        sleepaWhile("1000")
+        w3sock.WaitFor  "[c1841*]?"
+        w3sock.SendLine ""
+        w3sock.SendLine ""
+        'w3sock.WaitFor  "[confirm]"
+        w3sock.SendLine ""
+        w3sock.SendLine ""
+        sleepaWhile("1000")
+        w3sock.WaitFor  "#"
+    End If
+    If Model = "2650" Then
+        w3sock.SendLine "delete flash:c2600*"
+        sleepaWhile("1000")
+        w3sock.WaitFor  "[c2600*]?"
+        w3sock.SendLine ""
+        w3sock.SendLine ""
+        w3sock.SendLine ""
+        w3sock.SendLine ""
+        sleepaWhile("1000")
+        w3sock.WaitFor  "#"
+    End If
+    If Model = "2801" Then
+        w3sock.SendLine "delete flash:c2801*"
+        sleepaWhile("1000")
+        w3sock.WaitFor  "[c2801*]?"
+        w3sock.SendLine ""
+        w3sock.SendLine ""
+        w3sock.SendLine ""
+        w3sock.SendLine ""
+        sleepaWhile("1000")
+        w3sock.WaitFor  "#"
+    End If
+    If Model = "2811" Then
+        w3sock.SendLine "delete flash:c2800*"
+        sleepaWhile("1000")
+        w3sock.WaitFor  "[c2800*]?"
+        w3sock.SendLine ""
+        w3sock.SendLine ""
+        w3sock.SendLine ""
+        w3sock.SendLine ""
+        sleepaWhile("1000")
+        w3sock.WaitFor  "#"
+    End If
+    
+    w3sock.SendLine "squeeze /quiet flash:"
+    sleepaWhile("1000")
+    w3sock.WaitFor  "[confirm]"
+    w3sock.SendLine ""
+    w3sock.SendLine ""
+    sleepaWhile("1000")
+    w3sock.WaitFor  "#"
+    w3sock.SendLine ""
+    sleepaWhile("1000")
+
+    If TftpSrv = ftpSrv Then
+      KopyalamaKomutu = "copy /noverify ftp://" & TftpSrv & "/ios/" & CiscoIOS & " flash: "
+    Else
+      KopyalamaKomutu = "copy /noverify tftp://" & TftpSrv & "/" & CiscoIOS & " flash: "
+    End If
+
+    w3sock.SendLine KopyalamaKomutu
+    sleepaWhile("1000")
+    w3sock.WaitFor  "bin]?"
+    sleepaWhile("1000")
+    w3sock.SendLine ""
+    
+    If Model = "2650" Then
+      w3sock.SendLine ""
+      sleepaWhile("1000")
+      w3sock.WaitFor  "[confirm]"
+      w3sock.SendLine ""
+      sleepaWhile("1000")
+      w3sock.WaitFor  "[confirm]"
+      w3sock.SendLine ""
+    End If
+
+    sleepaWhile("1000")
+    If Model = "1760" Then
+      w3sock.WaitFor  "[confirm]"
+      w3sock.SendLine ""
+      w3sock.SendLine ""
+      w3sock.SendLine ""
+      w3sock.SendLine ""
+      sleepaWhile("1000")
+      w3sock.WaitFor  "#"
+    Else
+      w3sock.WaitFor  "#"
+    End If
+  End If
+  
+  sleepaWhile("1000")
+  'closeTelnet()
+  'If Err.Number <> 0 Then 
+  '  p2.InnerHTML="<span>"& CihazIP & " HATA OLUsTU. TELNET BAgLANTISI SAgLANAMADI. Program sonlandi. </span>"
+  '  p3.InnerHTML="<span>Error # " & CStr(Err.Number) & " " & Err.Description & " </span>"
+  '  Err.Clear   ' Clear the error.
+  '  firmwareUpgrade = False
+  ' Exit Function
+  ' End If
+  'On Error GoTo 0
+
+  firmwareUpgrade = True
+End Function
+
+Function reloadDevice(IPAdres, TelnetSifre, EnableSifre, Saat)
+  ret = startTelnet (IPAdres, TelnetSifre, EnableSifre)
+  w3sock.SendLine ""
+  sleepaWhile("1000")
+  w3sock.WaitFor  "#"
+  w3sock.SendLine "clock set " & CiscoSaat()
+  w3sock.SendLine ""
+  sleepaWhile("1000")
+  w3sock.WaitFor  "#"
+  w3sock.SendLine "wr"
+  w3sock.SendLine ""
+  w3sock.SendLine ""
+  sleepaWhile("1000")
+  w3sock.WaitFor  "#"
+  w3sock.SendLine "reload at " & Saat
+  w3sock.WaitFor  "[confirm]"
+  w3sock.SendLine ""
+  sleepaWhile("1000")
+  w3sock.WaitFor  "#"
+  closeTelnet()
+
+  reloadDevice = True
+End Function
+
+Function isIOScopied(IPAdres, deviceType2, TelnetSifre, EnableSifre, IOS, TelnetKapat)
+
+  ipOctets = Split(IPAdres, ".", -1, 1)
+
+  startTelnet IPAdres, TelnetSifre, EnableSifre
+  Set WShell = CreateObject("WScript.Shell")
+  
+  Dim dirFlash
+  w3sock.SendLine ""
+  If deviceType2 = "Anahtar" Then
+    CiscoIOS = replace(IOS, "-tar.", "-mz.")
+    last = Instr(1, CiscoIOS, ".tar", 0)
+    IOSDir = Mid(CiscoIOS, 1, last-1)
+    CiscoIOS =  IOSDir & ".bin"
+    'MsgBox "IOSDir: " & IOSDir & vbCr & "CiscoIOS: " & CiscoIOS & vbCR & "     IOS: " & IOS
+
+    If InStr(1, IOS, "2950", 0) Then
+      komut = "dir flash:" & CiscoIOS
+    Else 
+      komut = "dir flash:" & IOSDir & "/" & CiscoIOS
+    End If
+    w3sock.SendLine komut
+    sleepaWhile("1000")
+    w3sock.WaitFor "#"
+    sleepaWhile("1000")
+    dirFlash =  w3sock.Buffer
+    If InStr(1, dirFlash, "Error", 0) Then
+      'p1.InnerHTML="<span> HATA: IOS bulunamadi !!! " & dirFlash & " </span>"
+      isIOScopied = False
+    Else
+      If InStr(1, IOS, "2950", 0) Then
+        verify = "verify /md5 flash:" & CiscoIOS
+      Else
+        verify = "verify /md5 flash:" & IOSDir & "/" & CiscoIOS
+      End If
+      w3sock.SendLine verify
+      sleepaWhile("3000")
+      w3sock.WaitFor "#"
+      verifysonuc =  w3sock.Buffer
+      TemporaryFile = TempFile & "." & replace(Timer(),",","")
+      ret = DosyayaYaz(verifysonuc, TemporaryFile, ForWriting, True)
+      Set WShell = CreateObject("WScript.Shell")
+
+      strRun = "%comspec% /c " & Grep & " = " & TemporaryFile & " | "& Cut & " -f2 -d= "
+      Set objExecObject = WShell.Exec(strRun)
+      Do Until objExecObject.StdOut.AtEndOfStream
+        strLine = objExecObject.StdOut.ReadLine()
+      Loop
+      verifiedhash = trim(strLine)
+      If iosHash = verifiedhash Then
+        isIOScopied = True
+      Else
+        isIOScopied = False
+      End If
+    End If
+  Else ' Yonlendirici icin devam
+    If Not CiscoModel = "7206" or Not CiscoModel = "7507" Then
+      komut = "dir flash:" & IOS
+      verify = "verify /md5 flash:" & IOS
+    ElseIf CiscoModel = "7206" Then
+      verify = "verify /md5 disk2:" & IOS
+      komut = "dir disk2:" & IOS
+    ElseIf CiscoModel = "7507" Then
+      verify = "verify /md5 disk0:" & IOS
+      komut = "dir disk0:" & IOS
+    End If
+    w3sock.SendLine komut
+    sleepaWhile("1000")
+    w3sock.WaitFor "#"
+    sleepaWhile("1000")
+    dirFlash =  w3sock.Buffer
+    If InStr(1, dirFlash, "Error", 0) Then
+      'p1.InnerHTML="<span> HATA: IOS bulunamadi !!! " & dirFlash & " </span>"
+      isIOScopied = False
+    Else
+      w3sock.SendText(vbCr)
+      w3sock.WaitFor "#"
+      w3sock.SendLine verify
+      w3sock.SendText(vbCr)
+      sleepaWhile("3000")
+      w3sock.WaitFor "."
+      w3sock.SendText(vbCr)
+      w3sock.WaitFor "#"
+      verifysonuc = ""
+      verifysonuc = verifysonuc + w3sock.Buffer
+      TemporaryFile = TempFile & "." & replace(Timer(),",","")
+      ret = DosyayaYaz(verifysonuc, TemporaryFile, ForWriting, True)
+
+      strRun = "%comspec% /c " & Grep & " = " & TemporaryFile & " | "& Cut & " -f2 -d= "
+      Set objExecObject = WShell.Exec(strRun)
+      Do Until objExecObject.StdOut.AtEndOfStream
+        strLine = objExecObject.StdOut.ReadLine()
+      Loop
+      verifiedhash = trim(strLine)
+      If iosHash = verifiedhash Then
+        isIOScopied = True
+      Else
+        isIOScopied = False
+      End If
+      
+    End If
+  End If
+
+  strRun = "%comspec% /c del " & TemporaryFile
+  WShell.Exec(strRun)
+
+  If TelnetKapat Then
+    closeTelnet()
+  End If
+  
+End Function
+
+Function isIOSUpdated(IPAdres, TelnetSifre, EnableSifre)
+  Dim Shver
+  On Error Resume Next  
+  ipOctets = Split(IPAdres, ".", -1, 1)
+  
+  startTelnet IPAdres, TelnetSifre, EnableSifre
+  
+  'w3sock.SendLine ""
+  w3sock.SendText(vbCr)
+
+  If Err.Number <> 0 Then 
+    p2.InnerHTML="<span>"& CihazIP & " HATA OLUsTU! TELNET BAgLANTISI SAgLANAMADI. Program sonlandi.. </span>"
+    p3.InnerHTML="<span><b>Hata Tanimi:</b> # " & Err.Description & " </span>"
+    Err.Clear   ' Clear the error.
+    startTelnet = False
+   Exit Function
+  End If
+  
+  w3sock.SendLine "terminal length 0"
+  sleepaWhile("1000")
+  w3sock.WaitFor "#"
+  w3sock.SendLine "sh ver"
+  sleepaWhile("1000")
+  w3sock.WaitFor "#"
+  sleepaWhile("1000")
+  w3sock.SendLine "exit"
+  'closeTelnet()
+  shver =  w3sock.Buffer
+  shver = trim(shver)
+  TemporaryFile = TempFile & "." & replace(Timer(),",","")
+  ret = DosyayaYaz(shver, TemporaryFile, ForWriting, False)
+  Set WShell = CreateObject("WScript.Shell")
+  strRun = "%comspec% /c " & Grep & " image " & TemporaryFile &" | " & Cut & " -f 2 -d: | " & Cut & " -f 2 -d" & Chr(47)
+  Set objExecObject = WShell.Exec(strRun)
+  Do Until objExecObject.StdOut.AtEndOfStream
+    strLine = objExecObject.StdOut.ReadLine()
+    strLine = replace(strLine,Chr(34),"")
+  Loop
+  strRun = "%comspec% /c del " & TemporaryFile
+  WShell.Exec(strRun)
+  CiscoIOS = trim(strLine)
+  CiscoIOSModel = CiscoIOS
+
+  If InStr(1,CiscoIOS,"k9",0) <> 0 Then
+    isIOSUpdated = True
+  Else
+    isIOSUpdated = False
+  End If
+  closeTelnet()
+
+End Function
+
+Function DosyayaYaz(Metin, Dosya, YazimTipi, Satirbasi)
+
+Dim fso, objCikti
+Const TristateUseDefault = -2, TristateTrue = -1, TristateFalse = 0
+
+Set fso = CreateObject("Scripting.fileSystemObject")
+Set objCikti = fso.OpenTextFile(Dosya, YazimTipi, TRUE)', TristateUseDefault)
+If Satirbasi Then
+objCikti.WriteLine(Metin)
+Else
+objCikti.Write(Metin)
+End IF
+objCikti.Close
+
+'Set fso = Nothing
+
+'WScript.Quit(0)
+
+End Function
+
+Function serialNoBul(IPAdres, TelnetSifre, EnableSifre)
+  Dim Shver, Shdiag
+  
+  ipOctets = Split(IPAdres, ".", -1, 1)
+
+  startTelnet IPAdres, TelnetSifre, EnableSifre
+  
+  w3sock.SendLine ""
+  w3sock.SendLine "terminal length 0"
+  sleepaWhile("1000")
+  w3sock.WaitFor "#"
+  w3sock.SendLine "sh inv"
+  sleepaWhile("1000")
+  w3sock.WaitFor "#"
+  sleepaWhile("1000")
+  w3sock.SendLine "exit"
+  shinv =  w3sock.Buffer
+  shinv = trim(shinv)
+  TemporaryFile = TempFile & "." & replace(Timer(),",","")
+  ret = DosyayaYaz(shinv, TemporaryFile, ForWriting, False)
+  Set WShell = CreateObject("WScript.Shell")
+  strRun = "%comspec% /c " & Grep & " PID " & TemporaryFile &" | " & Cut & " -f1,3 -d,"
+  ret = DosyayaYaz(IPAdres & vbTab & "," & vbTab, serialFile, ForAppending, False) 
+  Dim arrModelSerial(100)
+  Set objExecObject = WShell.Exec(strRun)
+  Do Until objExecObject.StdOut.AtEndOfStream
+    strLine = objExecObject.StdOut.ReadLine()
+    strSplitted = split(strline,",")
+    j = 0
+    For Each x In strSplitted
+      strModelSerial = split(x,":")
+      i = 0
+      For Each y In strModelSerial
+        If i Mod 2 = 1 Then
+          arrModelSerial(i) = trim(y)
+          'MsgBox arrModelSerial(i)
+          If j Mod 2 = 1 Then
+            ret = DosyayaYaz(arrModelSerial(i) & vbTab & "," & vbTab, serialFile, ForAppending, False)
+          Else
+            ret = DosyayaYaz(arrModelSerial(i) & vbTab & ":" & vbTab, serialFile, ForAppending, False)
+          End If
+          j = j + 1
+        End If
+        i = i + 1
+      Next
+    Next
+  Loop
+  ret = DosyayaYaz(vbCr, serialFile, ForAppending, False)
+  closeTelnet()
+  strRun = "%comspec% /c del " & TemporaryFile
+  WShell.Exec(strRun)
+  serialNoBul = True
+End Function
+
+Function CiscoSaat()
+  Dim Zaman 
+  Zaman = now()
+
+  Dim Aylar, TarihSaat
+
+  Aylar = array ("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+
+  TarihSaat = time() &" "& datepart ("d",Zaman) &" "& Aylar(datepart ("m",Zaman)-1)&" "& datepart ("yyyy",Zaman) 
+  CiscoSaat = TarihSaat
+  
+End Function
+
+Function KomutSil(IPAdres, komut, TelnetSifre, EnableSifre)
+
+  ret = startTelnet (IPAdres, TelnetSifre, EnableSifre)
+  w3sock.SendLine ""
+  w3sock.SendLine "terminal length 0"
+  sleepaWhile("1000")
+  w3sock.WaitFor "#"
+  w3sock.SendLine "sh run | i " & komut 
+  sleepaWhile("1000")
+  w3sock.WaitFor "#"
+  sleepaWhile("1000")
+  w3sock.SendLine "exit"
+  shver =  w3sock.Buffer
+  shver = trim(shver)
+  TemporaryFile = TempFile & "." & replace(Timer(),",","")
+  ret = DosyayaYaz(shver, TemporaryFile, ForWriting, False)
+
+  Set objFSO = CreateObject("Scripting.FileSystemObject")
+  Set objFile = objFSO.OpenTextFile(TemporaryFile, ForReading)
+
+  Do Until objFile.AtEndOfStream
+    strLine = objFile.ReadLine
+    If InStr(strLine, "sh run | i " & komut) = 0 Then
+      strNewContents = strNewContents & strLine & vbCrLf
+    End If
+  Loop
+
+  objFile.Close
+
+  Set objFile = objFSO.OpenTextFile(TemporaryFile, ForWriting)
+  objFile.Write strNewContents
+
+  objFile.Close
+
+  Set WShell = CreateObject("WScript.Shell")
+
+  strRun = "%comspec% /c " & Grep & " """ & komut & """ " & TemporaryFile
+  Set objExecObject = WShell.Exec(strRun)
+  
+  startTelnet IPAdres, TelnetSifre, EnableSifre
+
+  w3sock.SendLine ""
+  w3sock.SendLine "terminal length 0"
+  sleepaWhile("1000")
+  w3sock.WaitFor "#"
+  w3sock.SendLine "conf t" 
+  sleepaWhile("1000")
+  w3sock.WaitFor "config)#"
+  sleepaWhile("1000")
+
+  Do Until objExecObject.StdOut.AtEndOfStream
+    strLine = objExecObject.StdOut.ReadLine()
+    w3sock.SendLine "no " & strLine
+    sleepaWhile("1000")
+    w3sock.WaitFor "config)#"
+    sleepaWhile("1000")
+  Loop
+  
+  w3sock.SendLine "exit"
+  w3sock.SendLine "wr"
+  w3sock.WaitFor "#"
+  sleepaWhile("1000")
+
+  strRun = "%comspec% /c del " & TemporaryFile
+  WShell.Exec(strRun)
+  
+  KomutSil = True
+
+End Function
+
+'Import "include_v2.vbs"
+
+Sub Import(ByVal strFile)
+
+   Set objFs = CreateObject("Scripting.FileSystemObject")
+   Set WshShell = CreateObject("WScript.Shell")
+   strFile = WshShell.ExpandEnvironmentStrings(strFile)
+   file = objFs.GetAbsolutePathName(strFile)
+   Set objFile = objFs.OpenTextFile(strFile)
+   strCode = objFile.ReadAll
+   objFile.Close
+   ExecuteGlobal(strCode)
+
+End Sub
+
+Function Baslik() 
+  If FileName = "" Then
+		document.Title = IPAdres.Value & " - " & oHTA.ApplicationName & " v" & oHTA.VERSION
+	Else
+		document.Title = FileName
+	End If
+End Function
+
+Function Gonder()
+  Dim ipOctets, SunucuIP, CiscoIOS, CihazIP, Mesaj, TftpSrv, kontrolSayaci
+  
+  kontrolSayaci = 0
+	
+	CihazIP = IpAdres.Value
+	
+  TelnetSifre = sifretelnet.Value
+  EnableSifre = sifreenable.Value
+  TelnetKullaniciAdi = telnetkullanici.Value
+  TelnetKullaniciSifre = telnetsifresi.Value
+  inputdeviceList = inputdeviceList1.Value
+  inputChecked = inputChecked1.Value
+  
+
+  startTime = Timer
+  DokumanSaati.InnerHTML="<span>" & Time & "</span>"
+
+  If TelnetSifre <> "" Then
+    kontrolSayaci = kontrolSayaci + 1
+  End If
+
+  If EnableSifre <> "" Then
+    kontrolSayaci = kontrolSayaci + 1
+  End If
+
+  If TelnetKullaniciAdi <> "" Then
+    UserPassCounter = UserPassCounter + 1
+    kontrolSayaci = kontrolSayaci + 1
+  End If
+
+  If TelnetKullaniciSifre <> "" Then
+    UserPassCounter = UserPassCounter + 1
+    kontrolSayaci = kontrolSayaci + 1
+  End If
+
+  If kontrolSayaci > 2 Then
+    p0.InnerHTML="<span> Telnet/Enable ve Kullanici/sifre kutucuklarina ayni anda giris yapilamaz!  </span>"
+    Exit Function
+  End If
+
+  If TelnetKullaniciAdi <> "" and  TelnetSifre <> "" Then
+    p0.InnerHTML="<span> Telnet/Enable ve Kullanici/sifre kutucuklarina ayni anda giris yapilamaz!!  </span>"
+    Exit Function
+  End If
+
+  If TelnetKullaniciSifre <> "" and  EnableSifre <> "" Then
+    p0.InnerHTML="<span> Telnet/Enable ve Kullanici/sifre kutucuklarina ayni anda giris yapilamaz!!!  </span>"
+    Exit Function
+  End If
+  
+  If TelnetKullaniciAdi <> "" Then
+    TelnetSifre = TelnetKullaniciAdi
+  End If
+
+  If TelnetKullaniciSifre <> "" Then
+    EnableSifre = TelnetKullaniciSifre
+  End If
+  
+  reloadDeviceSaati = Saat.Value
+  TftpSrv = Sunucu.Value
+  Komut = KomutKutusu.Value
+  KonfigModu = konfmod.Value
+
+If inputdeviceList <> "" and inputChecked Then
+    Set fso = CreateObject("Scripting.FileSystemObject")
+      Set MyFile = fso.OpenTextFile(inputdeviceList, 1)
+      Do While MyFile.AtEndOfStream <> True
+        CihazIP = MyFile.ReadLine
+			If isValidIP(CihazIP) and isAccessible(CihazIP) Then 
+				return = serialNoBul(CihazIP, "", "")
+			End If
+      Loop
+ 
+ '		ipOctets = Split(CihazIP, ".", -1, 1)
+ '       CihazIP2 = ipOctets(0) & "." & ipOctets(1) & "." & ipOctets(2)
+        
+ '       counter = 254
+ '       Do While counter > 242
+'			MsgBox counter
+'			CihazIP3 =  CihazIP2 & "." & counter
+'            MsgBox "CihazIP3-1: " & CihazIP3 & " counter-1: " & counter   
+			If isValidIP(CihazIP) and isAccessible(CihazIP) Then 
+'				MsgBox "test1"
+'				return = serialNoBul(CihazIP, "", "")
+'				MsgBox "CihazIP3: " & CihazIP3 & " counter: " & counter
+			End If
+'			counter = counter - 1
+   
+      MyFile.Close
+	p0.InnerHTML="<span> Seri Numaralar <b>" & serialFile & "</b> dosyasina kopyalandi.</span>"
+    BitisZamani = Timer
+    sureolcer.InnerHTML="<span>"&  BitisZamani - startTime & " sn</span>"
+    Exit Function
+End If
+
+	If CihazIP = "" Then
+     p0.InnerHTML="<span> IP Adresi girilmedi. Program sonlandi. </span>"
+     BitisZamani = Timer
+     sureolcer.InnerHTML="<span>" &  BitisZamani - startTime & " sn</span>"
+     IpAdres.focus()
+	  Exit Function
+	End If
+  
+  If Not isValidIP(CihazIP) Then
+    p0.InnerHTML="<span> Geçerli IP Adresi girilmedi. IP Adresi A.B.C.D biçiminde girilmelidir. </span>"
+    BitisZamani = Timer
+    sureolcer.InnerHTML="<span>" &  BitisZamani - startTime & " sn</span>"
+    IpAdres.focus()
+    Exit Function
+  End If 
+  
+	ipOctets = Split(CihazIP, ".", -1, 1)
+ 
+  If TftpSrv <> "" Then
+    If Not isValidIP(TftpSrv) Then
+      p0.InnerHTML="<span> Sunucu için geçerli IP Adresi girilmedi. IP Adresi A.B.C.D biçiminde girilmelidir. </span>"
+      BitisZamani = Timer
+      sureolcer.InnerHTML="<span>" &  BitisZamani - startTime & " sn</span>"
+      IpAdres.focus()
+      Exit Function
+    End If 
+    SunucuIP = TftpSrv
+  Else
+    SunucuIP = ipOctets(0) & "." & ipOctets(1) & "." & ipOctets(2) & "." & SunucuSuffix
+  End If
+  
+  Network = ipOctets(0) & "." & ipOctets(1) & "." & ipOctets(2) & ".0"
+  If (ipOctets(1) = "251" Or ipOctets(1) = "252") Or (ipOctets(1) = "6" And ipOctets(2) = "254") Then
+    LokalSifre = "$a0_O1@h2-K3#q4x5h6J7m8"
+  Else
+    LokalSifre = SGPLocal("1St@nbuL",Network,"10")
+  End If
+  Dim fso, OutputFile
+  
+  Mesaj = ""
+  
+  If Not isAccessible(CihazIP) Then
+		p0.InnerHTML="<span>"& CihazIP & " Ulasilamiyor. Program sonlandi. </span>"
+    BitisZamani = Timer
+    sureolcer.InnerHTML="<span>"&  BitisZamani - startTime & " sn</span>"
+		Exit Function
+  End If
+  
+  If Not Radius.Checked and Not SSH.Checked and Not serialNo.Checked Then
+    If Not isAccessible(SunucuIP) Then
+      p1.InnerHTML="<span>"& SunucuIP & " Ulasilamiyor. Program sonlandi. </span>"
+      BitisZamani = Timer
+      sureolcer.InnerHTML="<span>"&  BitisZamani - startTime & " sn</span>"
+      Exit Function
+    End If
+  End If
+
+  If Komut <> "" and KonfigModu <> "" Then
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    If inputdeviceList <> "" and inputChecked Then
+      Set MyFile = fso.OpenTextFile(inputdeviceList, 1)
+      Do While MyFile.AtEndOfStream <> True
+        TextLine = MyFile.ReadLine
+        If isAccessible(TextLine) Then
+          If runCommand(KonfigModu, Komut, TextLine) Then
+            'p2.InnerHTML="<span> " & CihazIP & "'e <b>"& Komut & "</b> komutu basari ile girildi.</span>"
+            ret = DosyayaYaz(TextLine, "C:\tools\router_images\basarili.txt", ForAppending, True)
+          Else
+            ret = DosyayaYaz(TextLine, "C:\tools\router_images\basarisiz.txt", ForAppending, True)
+          End If
+        Else
+          'p2.InnerHTML="<span> " & CihazIP & "'e "& Komut & " komut basarisiz.</span>"
+          ret = DosyayaYaz(TextLine, "C:\tools\router_images\basarisiz.txt", ForAppending, True)
+        End If
+      Loop
+      MyFile.Close
+      p2.InnerHTML="<span> " & inputdeviceList & " listesi için " & Komut & " komutu çalistirildi</span>"
+    Else
+      If runCommand(KonfigModu, Komut, CihazIP) Then
+        'p2.InnerHTML="<span> " & CihazIP & "'e <b>"& Komut & "</b> komutu basari ile girildi.</span>"
+        ret = DosyayaYaz(TextLine, "C:\tools\router_images\basarili.txt", ForAppending, True)
+      Else
+        ret = DosyayaYaz(TextLine, "C:\tools\router_images\basarisiz.txt", ForAppending, True)
+      End If
+      p2.InnerHTML="<span> <b>" & CihazIP & "</b> adresine <b>"& Komut & " </b> komutu girildi. </span>"
+      Exit Function
+    End If
+  End If
+
+  If forceIOSUpdate.Checked and IOS.Checked Then
+    p0.InnerHTML="<span> <b>HATA:</b> IOS yükleme seçeneklerinden sadece birini seçebilirsiniz. <br />Program sonlandi!</span>"
+    BitisZamani = Timer
+    sureolcer.InnerHTML="<span>"&  BitisZamani - startTime & " sn</span>"
+    Exit Function  
+  End If
+
+  radiusCheck(CihazIP)
+  
+  If strError Then
+    BitisZamani = Timer
+    sureolcer.InnerHTML="<span>"&  BitisZamani - startTime & " sn</span>"
+    Exit Function  
+  End If
+
+  iosUpdated = isIOSUpdated(CihazIP, TelnetSifre, EnableSifre)
+
+  If CihazModel.Value = "6506-E" or CihazModel.Value = "6509-E" or CihazModel.Value = "6509" or CihazModel.Value = "4507R" Then
+    CiscoModel = CihazModel.Value
+  Else 
+    CiscoModel = findModel(CihazIP)
+  End If
+
+  sleepaWhile("1000")
+
+  If Not serialNo.Checked Then
+    ret = serialNoBul (CihazIP, TelnetSifre, EnableSifre)
+  End If
+  sleepaWhile("1000")
+
+  Select Case CiscoModel
+    Case "1760"
+      CiscoIOS = "c1700-ipbasek9-mz.124-19b.bin"
+      iosHash = "5c37bf86e46b9fd08a4562c87dec43e9"
+    Case "1841"
+      CiscoIOS = "c1841-spservicesk9-mz.124-19b.bin"
+      iosHash = "525540a8f09f11e1157814664af544ee"
+    Case "2650"
+      CiscoIOS = "c2600-spservicesk9-mz.124-19b.bin"
+      iosHash = "3cd6bd3a9c67687fe232f1583cf436ac"
+    Case "2801"
+      CiscoIOS = "c2801-spservicesk9-mz.124-19b.bin"
+      iosHash = "c06ab777c80f4ba22dcbc13dd42c6f1e"
+    Case "2811"
+      CiscoIOS = "c2800nm-spservicesk9-mz.124-19b.bin"
+      iosHash = "f25340508ad6b76451707ffce8bc8ba5"
+    Case "7206"
+      CiscoIOS = "c7200-pk9u2-mz.124-3j.bin"
+      iosHash = "ddefc828a4d6d5cb5f421a6f10283566"
+    Case "3560"
+      CiscoIOS = "c3560-ipservicesk9-tar.122-40.SE.tar"
+      iosHash = "2460534529597f02bd7bbb3464dba0e2"
+    Case "3550"
+      CiscoIOS = "c3550-ipservicesk9-tar.122-40.SE.tar"
+      iosHash = "224ae3682b03d22f257e6687e65b1d80"
+    Case "2970"
+      CiscoIOS = "c2970-lanbasek9-tar.122-37.SE.tar"
+      iosHash = "76de685118de7309ef73cd5053fdddab"
+    Case "2960"
+      CiscoIOS = "c2960-lanbasek9-tar.122-40.SE.tar"
+      iosHash = "575c4450c295789e45c12014f79e4e44"
+    Case "2950"
+      CiscoIOS = "c2950-i6k2l2q4-tar.121-22.EA12.tar"
+      iosHash = "e647ac4a18d7bffd49312c3c7caa9a6c"
+    Case "4500"
+      CiscoIOS = "cat4500-entservicesk9-mz.122-40.SG.bin"
+      iosHash = "35320e5380c185839513d560e76c966b"
+    Case "6506-E"
+      CiscoIOS = "s72033-ipservicesk9_wan-mz.122-18.SXF17a.bin"
+      iosHash = "test"
+    Case "6509"
+      CiscoIOS = "s72033-pk9sv-mz.122-18.SXD7b.bin"
+      iosHash = "test"
+    Case "6509-E"
+      CiscoIOS = "s72033-ipservicesk9_wan-mz.122-18.SXF17a.bin"
+      iosHash = "test"
+    Case Else 
+      p0.InnerHTML="<span> HATA: Yönlendirici kaydi bulunamadi. "  & CiscoModel & "</span>"
+      Exit Function
+  End Select
+  
+  Mesaj = Mesaj & CihazIP & " IP Adresli " & CiscoModel & " için "
+  
+  If IOS.Checked or forceIOSUpdate.Checked Then
+    Mesaj = Mesaj & " IOS Güncelleme "
+  End If
+  If Radius.Checked Then
+    Mesaj = Mesaj & " Radius Konfigürasyonu "
+  End If
+  If SSH.Checked Then
+    Mesaj = Mesaj & " SSH Konfigürasyonu "
+  End If
+  If restartDevice.Checked Then
+    Mesaj = Mesaj & " Yeniden Baslatma "
+  End If 
+  If serialNo.Checked Then
+    Mesaj = Mesaj & " Seri Numarasi Kaydetme "
+  End If 
+
+  p0.InnerHTML="<span> " & Mesaj & " islem(ler)i baslatildi. </span>"
+  
+  If IOS.Checked Then
+    'sh ver ciktisindaki IOS guncel gozukuyor mu? nun kontrolu yapiliyor.
+    If iosUpdated Then
+      p4.InnerHTML="<span>" & CihazIP & " için IOS Güncellemesi daha önce yapilmis.</span>"
+    Else ' IOS Guncel degilse devam
+      If SunucuIP <> ftpSrv Then
+
+        destFolder = LCase(replace (destFolder, "\\", "\"))
+        str = folderCheck(SunucuIP, destFolder)
+        str = LCase(str)
+        destFolder = LCase(replace (destFolder, "\\", "\"))
+
+        If StrComp(str, destFolder, 0 ) <> 0 Then ' C:\tools\router_images Klasor yoksa islemi sonlandir.
+          p4.InnerHTML="<span> \\" & SunucuIP & "\" & replace(destFolder,":","$") & " BULUNAMADI. Program SONLANIYOR. </span>"
+          Exit Function
+        End If
+      
+        CiscoIOSYolu = destFolder + "\" + CiscoIOS
+        str2 =  fileCheck(SunucuIP, CiscoIOSYolu) ' C:\tools\router_images\CiscoIOS var mi kontrol...
+        CiscoIOSYolu = replace (CiscoIOSYolu, "\\", "\")
+        CiscoIOSYolu = LCase(CiscoIOSYolu)
+
+        If StrComp (str2, CiscoIOSYolu, 0) <> 0 Then ' C:\tools\router_images\CiscoIOS dosyasi yoksa islemi sonlandir.
+          p2.InnerHTML="<span> " & SunucuIP & " de " & CiscoIOSYolu & " BULUNAMADI. Program SONLANIYOR. </span>"
+          Exit Function
+        End If
+        
+        str3 = fileCheck(SunucuIP, tftp32DestPath) 'C:\tools\router_images\tftpd32.exe var mi kontrol...
+        tftp32DestPath = LCase(replace (tftp32DestPath, "\\", "\"))
+
+        If StrComp (str3, tftp32DestPath, 0) = 0 and SunucuIP <> ftpSrv Then 'C:\tools\router_images\tftpd32.exe varsa kopyalamaya gerek yok mesaj ver.
+          p2.InnerHTML="<span> " & SunucuIP & " de " & tftp32DestPath & " bulundu. Kopyalama yapilmayacak.</span>"
+        Else 'C:\tools\router_images\tftpd32.exe kopyalamasi yapilacak
+          copySuccess = RemoteCopyFile(tftpd32Path, tftp32DestPath, SunucuIP) ' tftpd32.exe yok kopyala
+          If copySuccess = True Then
+            p2.InnerHTML="<span> " & SunucuIP & " de "& tftp32DestPath & " kopyalamasi yapildi.</span>"
+          Else
+            p2.InnerHTML="<span> " & SunucuIP & " de "& tftp32DestPath & " kopyalamasi YAPILAMADI. Program SONLANIYOR. </span>"
+            BitisZamani = Timer
+            sureolcer.InnerHTML="<span style=""font-family: Tahoma"">"&  BitisZamani - startTime & " sn</span>"
+            Exit Function
+          End If 
+        End If
+        
+        path_tftpd32 = GetProcDir(SunucuIP, ProcName)
+        path_tftpd32 = LCase(path_tftpd32)
+        path_tftpd32 = Trim(path_tftpd32)
+        path_tftpd32 = replace(path_tftpd32,"""","")
+        
+        If path_tftpd32 = "" Then
+          calistimi = runCommand(SunucuIP, tftp32DestPath, destFolder)
+          If Not calistimi Then
+            p4.InnerHTML="<span> " & SunucuIP & " sunucusundaki " & tftp32DestPath & " ÇALIsTIRILAMADI. </span>"
+            BitisZamani = Timer
+            sureolcer.InnerHTML="<span style=""font-family: Tahoma"">"&  BitisZamani - startTime & " sn</span>"
+            Exit Function
+          End If
+        ElseIf StrComp (path_tftpd32, tftp32DestPath, 0) <> 0 Then
+          If Not TerminateProc (SunucuIP, ProcName) Then
+            p4.InnerHTML="<span> " & SunucuIP & " sunucusundaki " & ProcName & " SONLANDIRILAMADI. </span>"
+            BitisZamani = Timer
+            sureolcer.InnerHTML="<span style=""font-family: Tahoma"">"&  BitisZamani - startTime & " sn</span>"
+            Exit Function
+          End If
+            calistimi = runCommand(SunucuIP, tftp32DestPath, destFolder)
+            If Not calistimi Then
+              p4.InnerHTML="<span> " & SunucuIP & " sunucusundaki " & tftp32DestPath & " ÇALIsTIRILAMADI. </span>"
+              BitisZamani = Timer
+              sureolcer.InnerHTML="<span style=""font-family: Tahoma"">"&  BitisZamani - startTime & " sn</span>"
+              Exit Function
+            End If
+        End If ' path_tftpd32 = "" 
+          Devam = True
+          TelnetKapat = False
+      End If ' FTP: 10.X.Y.100 den farkli ise.
+      If isIOScopied(CihazIP, deviceType, TelnetSifre, EnableSifre, CiscoIOS, TelnetKapat) Then 
+        Devam = False 'Guncelleme islemine devam etmeye artik gerek yok.
+        sleepaWhile("1000")
+        If reloadDevice(CihazIP, TelnetSifre, EnableSifre, reloadDeviceSaati) Then
+          p5.InnerHTML="<br /> <span>" & CihazIP & " nin IOS' yüklenmis, fakat tekrar baslatilmamis. Saat " & reloadDeviceSaati & "' da yeniden baslatilmak üzere programlandi.</span>"
+        End If ' reloadDevice
+      Else
+      	Devam = True
+      End If 'IOS kopyalandi mi
+      sleepaWhile("1000")
+      If Devam Then 'IOS kopyalandiysa Devam etmeye gerek yok.
+        If firmwareUpgrade(SunucuIP, CihazIP, CiscoModel, CiscoIOS, LokalSifre, TelnetSifre, EnableSifre) Then
+          TelnetKapat = True
+          sleepaWhile(waitingTime)
+          ' Güncelleme yapildiktan sonra tekrar IOS kopyalama kontrolu yapiliyor.
+          If isIOScopied(CihazIP, deviceType, TelnetSifre, EnableSifre, CiscoIOS, TelnetKapat)  Then
+            p4.InnerHTML="<br /> <span>" & CihazIP & " " & CiscoIOS & " IOS Güncellemesi tamamlandi. </span>"
+            sleepaWhile("1000")
+            If reloadDevice(CihazIP, TelnetSifre, EnableSifre, reloadDeviceSaati) Then
+              p5.InnerHTML="<br /> <span>" & CihazIP & " Saat " & reloadDeviceSaati & " da yeniden baslatilmak üzere programlandi. <br> TÜM isLEMLER BAsARI iLE YAPILDI </span>"
+              FileName  = updatedDevices
+              ret = DosyayaYaz(CihazIP & " - " & Date & " - " & reloadDeviceSaati & " - BAsLATILDI ", FileName, ForAppending, False)
+              ret = DosyayaYaz(vbCr, FileName, ForAppending, False)
+            End If   
+          Else 'IOS kopyalandi mi
+              p5.InnerHTML="<br /> <span> Cihaz: " & CihazIP & "<br />" & CiscoIOS & " IOS güncellemesinde HATA olustu. MD5 Kontrolü yapin. <br /> KOPYALAMA BAsARISIZ. </span>"
+          End If 'IOS kopyalandi mi
+        End If 'Start IOS Update 
+      End If
+    End If 'IOS Guncel
+  End If 'IOS Checked
+
+  If forceIOSUpdate.Checked Then
+    'sh ver ciktisindaki IOS guncel gozukuyor mu? nun kontrolu yapiliyor.
+    If SunucuIP <> ftpSrv Then
+
+      destFolder = LCase(replace (destFolder, "\\", "\"))
+      str = folderCheck(SunucuIP, destFolder)
+      str = LCase(str)
+      destFolder = LCase(replace (destFolder, "\\", "\"))
+
+      If StrComp(str, destFolder, 0 ) <> 0 Then ' C:\tools\router_images Klasor yoksa islemi sonlandir.
+        p4.InnerHTML="<span> \\" & SunucuIP & "\" & replace(destFolder,":","$") & " BULUNAMADI. Program SONLANIYOR. </span>"
+        Exit Function
+      End If
+      
+      CiscoIOSYolu = destFolder + "\" + CiscoIOS
+      str2 =  fileCheck(SunucuIP, CiscoIOSYolu) ' C:\tools\router_images\CiscoIOS var mi kontrol...
+      CiscoIOSYolu = replace (CiscoIOSYolu, "\\", "\")
+      CiscoIOSYolu = LCase(CiscoIOSYolu)
+
+      If StrComp (str2, CiscoIOSYolu, 0) <> 0 Then ' C:\tools\router_images\CiscoIOS dosyasi yoksa islemi sonlandir.
+        p2.InnerHTML="<span> " & SunucuIP & " de " & CiscoIOSYolu & " BULUNAMADI. Program SONLANIYOR. </span>"
+        Exit Function
+      End If
+        
+      str3 = fileCheck(SunucuIP, tftp32DestPath) 'C:\tools\router_images\tftpd32.exe var mi kontrol...
+      tftp32DestPath = LCase(replace (tftp32DestPath, "\\", "\"))
+
+      If StrComp (str3, tftp32DestPath, 0) = 0 and SunucuIP <> ftpSrv Then 'C:\tools\router_images\tftpd32.exe varsa kopyalamaya gerek yok mesaj ver.
+        p2.InnerHTML="<span> " & SunucuIP & " de " & tftp32DestPath & " bulundu. Kopyalama yapilmayacak.</span>"
+      Else 'C:\tools\router_images\tftpd32.exe kopyalamasi yapilacak
+        copySuccess = RemoteCopyFile(tftpd32Path, tftp32DestPath, SunucuIP) ' tftpd32.exe yok kopyala
+        If copySuccess = True Then
+          p2.InnerHTML="<span> " & SunucuIP & " de "& tftp32DestPath & " kopyalamasi yapildi.</span>"
+        Else
+          p2.InnerHTML="<span> " & SunucuIP & " de "& tftp32DestPath & " kopyalamasi YAPILAMADI. Program SONLANIYOR. </span>"
+          BitisZamani = Timer
+          sureolcer.InnerHTML="<span style=""font-family: Tahoma"">"&  BitisZamani - startTime & " sn</span>"
+          Exit Function
+        End If 
+      End If
+        
+      path_tftpd32 = GetProcDir(SunucuIP, ProcName)
+      path_tftpd32 = LCase(path_tftpd32)
+      path_tftpd32 = Trim(path_tftpd32)
+      path_tftpd32 = replace(path_tftpd32,"""","")
+      
+      If path_tftpd32 = "" Then
+        calistimi = runCommand(SunucuIP, tftp32DestPath, destFolder)
+        If Not calistimi Then
+          p4.InnerHTML="<span> " & SunucuIP & " sunucusundaki " & tftp32DestPath & " ÇALIsTIRILAMADI. </span>"
+          BitisZamani = Timer
+          sureolcer.InnerHTML="<span style=""font-family: Tahoma"">"&  BitisZamani - startTime & " sn</span>"
+          Exit Function
+        End If
+      ElseIf StrComp (path_tftpd32, tftp32DestPath, 0) <> 0 Then
+        If Not TerminateProc (SunucuIP, ProcName) Then
+          p4.InnerHTML="<span> " & SunucuIP & " sunucusundaki " & ProcName & " SONLANDIRILAMADI. </span>"
+          BitisZamani = Timer
+          sureolcer.InnerHTML="<span style=""font-family: Tahoma"">"&  BitisZamani - startTime & " sn</span>"
+          Exit Function
+        End If
+          calistimi = runCommand(SunucuIP, tftp32DestPath, destFolder)
+          If Not calistimi Then
+            p4.InnerHTML="<span> " & SunucuIP & " sunucusundaki " & tftp32DestPath & " ÇALIsTIRILAMADI. </span>"
+            BitisZamani = Timer
+            sureolcer.InnerHTML="<span style=""font-family: Tahoma"">"&  BitisZamani - startTime & " sn</span>"
+            Exit Function
+          End If
+      End If ' path_tftpd32 = "" 
+      Devam = True
+      TelnetKapat = False
+    End If ' FTP: 10.X.Y.100 den farkli ise.
+      
+      sleepaWhile("1000")
+      If firmwareUpgrade(SunucuIP, CihazIP, CiscoModel, CiscoIOS, LokalSifre, TelnetSifre, EnableSifre) Then
+        TelnetKapat = True
+        sleepaWhile(waitingTime)
+        ' Güncelleme yapildiktan sonra tekrar IOS kopyalama kontrolu yapiliyor.
+        If isIOScopied(CihazIP, deviceType, TelnetSifre, EnableSifre, CiscoIOS, TelnetKapat)  Then
+          p4.InnerHTML="<br /> <span>" & CihazIP & " " & CiscoIOS & " IOS Güncellemesi tamamlandi. </span>"
+          sleepaWhile("1000")
+          If reloadDevice(CihazIP, TelnetSifre, EnableSifre, reloadDeviceSaati) Then
+            p5.InnerHTML="<br /> <span>" & CihazIP & " Saat " & reloadDeviceSaati & " da yeniden baslatilmak üzere programlandi. <br> TÜM isLEMLER BAsARI iLE YAPILDI </span>"
+            FileName  = updatedDevices
+            ret = DosyayaYaz(CihazIP & " - " & Date & " - " & reloadDeviceSaati & " - BAsLATILDI ", FileName, ForAppending, False)
+            ret = DosyayaYaz(vbCr, FileName, ForAppending, False)
+          End If   
+        Else 'IOS kopyalandi mi
+            p5.InnerHTML="<br /> <span> Cihaz: " & CihazIP & "<br />" & CiscoIOS & " IOS güncellemesinde HATA olustu... <br /> KOPYALAMA BAsARISIZ. </span>"
+        End If 'IOS kopyalandi mi
+      End If 'Start IOS Update 
+  End If 'forceIOSUpdate Checked
+
+  If restartDevice.Checked Then
+    If reloadDevice(CihazIP, TelnetSifre, EnableSifre, reloadDeviceSaati) Then
+      p1.InnerHTML="<span>" & CihazIP & " Saat " & reloadDeviceSaati & " da yeniden baslatilmak üzere ayarlandi. </span>"
+    End If ' reloadDevice
+  End If
+  
+  If Radius.Checked Then 
+    If RadiusConf(CihazIP, TelnetSifre, EnableSifre, LokalSifre) Then
+      'Radius yapilandirmasini kontrol ediyoruz.
+      radiusCheck(CihazIP)
+      If isradiusOK Then
+         p2.InnerHTML="<span>" & CihazIP & " için Radius basari ile yapilandirildi. </span>"
+      Else
+         p2.InnerHTML="<span> Cihaz:" & CihazIP & " Radius YAPILANDIRILAMADI. </span>"
+      End If
+    End If
+  End If
+
+  If SSH.Checked Then
+    If sshconf(CihazIP, TelnetSifre, EnableSifre, LokalSifre) Then
+      If isSSHOK Then
+        p3.InnerHTML="<span>" & CihazIP & " için ssh konfigürasyonu daha önce yapilmis. </span>"
+      Else
+        p3.InnerHTML="<span>" & CihazIP & " için ssh konfigürasyonu yapildi. </span>"
+      End If
+    Else
+      p3.InnerHTML="<span> HATA: " & CihazIP & " için ssh konfigürasyonu YAPILAMADI. </span>"
+    End If
+  End If
+
+  If Verify2.Checked Then
+    If isIOScopied(CihazIP, deviceType, TelnetSifre, EnableSifre, CiscoIOS, TelnetKapat) Then
+      p1.InnerHTML="<span>" & CihazIP & " için dogrulama basari ile yapildi. </span>"
+    Else 
+      p1.InnerHTML="<span>Error # " & CStr(Err.Number) & " " & Err.Description & "</span>"
+      Err.Clear
+    End If 'verify
+  End If
+
+  If serialNo.Checked Then
+    If serialNoBul (CihazIP, TelnetSifre, EnableSifre) Then
+      p1.InnerHTML="<span>" & CihazIP & " için seri numarasi basari ile " & serialFile &" dosyasina kaydedildi. </span>"
+    Else 
+      p1.InnerHTML="<span>Error # " & CStr(Err.Number) & " " & Err.Description & "</span>"
+      Err.Clear
+    End If 'serialNo
+  End If
+
+  p6.InnerHTML="<span> --- BiTTi --- </span>"
+  BitisZamani = Timer
+  sureolcer.InnerHTML="<span>"&  BitisZamani - startTime & " sn</span>"
+
+End Function 
+
+</script>
+</head>
+<body onload="onLoad()">
+    <br /><br />
+		<table border ="1">
+		<tr>
+      <td>&nbsp;Cihaz IP:</td>
+      <td>&nbsp;<input id="IpAdres" name = "IpAdres" type="text"/></td>
+      <td>&nbsp;</td>
+    </tr>
+		<tr>
+      <td>&nbsp;Sunucu(**):</td>
+      <td>&nbsp;<input id="Sunucu" name = "Sunucu" type="text"/></td>
+      <td>&nbsp;</td>
+    </tr>
+		<tr>
+      <td>&nbsp;Cihaz<br/>&nbsp;Modeli(*):&nbsp;</td>
+      <td>&nbsp;<select name="CihazModel" size="1">
+        <option value="" selected>Seçiniz
+        <option value="6506-E">6506-E</option>
+        <option value="6509">6509</option>
+        <option value="6509-E">6509-E</option>
+        </select>
+      </td>
+      <td>&nbsp;</td>
+    </tr>
+		<tr>
+      <td>&nbsp;islemler:</td>
+      <td>
+          &nbsp;IOS Güncelleme:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type = "checkbox" name = "IOS" value = "True"><br/ >
+          &nbsp;SSH Yapilandirmasi:&nbsp;<input type = "checkbox" name = "SSH" value = "True"><br/ >
+          &nbsp;Seri Num. Toplama:&nbsp;<input type = "checkbox" name = "serialNo" value = "True"><br />
+          &nbsp;Radius:&nbsp;<input type = "checkbox" name = "Radius" value = "True">&nbsp;
+      </td>
+      <td>
+          &nbsp;IOS Güncelleme (Zorlama):&nbsp;<input type = "checkbox" name = "forceIOSUpdate" value = "True"><br />
+          &nbsp;IOS Dogrulama:&nbsp;<input type = "checkbox" name = "Verify2" value = "True"><br />
+          &nbsp;Yeniden Baslat:&nbsp;&nbsp;<input type = "checkbox" name = "restartDevice" value = "True">
+          <SCRIPT language="javascript">document.write(SelectMesaj);</SCRIPT>&nbsp;<br />&nbsp;
+      </td>
+		</tr>
+		<tr>
+      <td>&nbsp;Komut <br />&nbsp;Çalistirma:</td>
+      <td>&nbsp;
+        <select name="konfmod" size="1">
+          <option value="" selected>Seçiniz
+          <option value="ATM">interface ATM</option>
+        </select><br/>&nbsp;&nbsp;<input id="KomutKutusu" name ="KomutKutusu" type="text"/>
+      </td>
+      <td>
+          &nbsp;Dosya(***):&nbsp;<input id="inputdeviceList1" name = "inputdeviceList1" value= "" type="text"/><br />
+          &nbsp;Dosyadaki IP'lerde çalistir:&nbsp;<input type = "checkbox" name = "inputChecked1" value = "True">
+      </td>
+    </tr>
+		<tr>
+      <td>&nbsp;Erisim <br />&nbsp;Bilgileri:</td>
+      <td>
+       &nbsp;Telnet sifre:&nbsp;<input name = "sifretelnet" value = "" size = "10" type="text"/><br />
+       &nbsp;Enable sifre:&nbsp;<input name = "sifreenable" value = "" size = "10" type="text"/></td>
+      <td>&nbsp;Kullanici Adi:&nbsp;<input name = "telnetkullanici" value = "" size = "10" type="text"/><br />&nbsp;sifre:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input name = "telnetsifresi" value = "" size = "10" type="text"/></td>
+    </tr>
+		<tr>
+      <td colspan = "3" align ="left">
+      (*)&nbsp;Sadece 65XX sase için model belirtilmesi zorunludur.<br/>
+      (**)&nbsp;Sunucu IP Adresi "10.X.X.241" biçiminde ise yazilmasina gerek yoktur.<br /> 
+      (***)&nbsp;Dosyada ip adresleri alt alta yazilmalidir.
+      </td>
+    </tr>
+		<tr>
+      <td colspan = "3" align ="center">
+      <p><input id="Button1" type="button" name = "Gonder" Value="Kendimi sansli Hissediyorum" onclick ="Baslik(); Gonder()"/></p></td>
+    </tr>
+    </table>
+    <ul class="projects">
+    <li><b>Süre:&nbsp;</b><span id="sureolcer" name="sureolcer"></span>&nbsp;&nbsp;<b>Baslangiç Saati:&nbsp;</b><span id = "DokumanSaati" name = "DokumanSaati"></span></li>
+    <br />	
+    <li><span id="p0" name="p0"></span></li>
+    <li><span id="p1" name="p1"></span></li>
+    <li><span id="p2" name="p2"></span></li>
+    <li><span id="p3" name="p3"></span></li>
+    <li><span id="p4" name="p4"></span></li>
+    <li><span id="p5" name="p5"></span></li>
+    <li><span id="p6" name="p6"></span></li>
+    </ul>
+    <hr>
+    <ul class="projects"><li><p  align="right">Her Hakki Saklidir © 2011 Özden Sicim - osicim @ gmail . com</p></li></ul>
+    </hr>
+</body>
+</html>
